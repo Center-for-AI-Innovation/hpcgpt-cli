@@ -2,7 +2,7 @@
   "$schema": "https://opencode.ai/config.json",
   "mode": {
     "support": {
-        //"model": "ncsaollama/qwen3:32b",
+        "model": "ncsahosted/Qwen/Qwen3-VL-32B-Instruct",
         "prompt": "{file:./prompts/support.txt}",
         "tools": {
           "write": true,
@@ -19,85 +19,12 @@
         "baseURL": "{env:NCSA_LLM_URL}"
       },
       "models": {
-        "Qwen/Qwen2.5-VL-72B-Instruct": {
-          "name": "Qwen 72B",
+        "Qwen/Qwen3-VL-32B-Instruct": {
+          "name": "Qwen 3 32B Instruct",
           "options": {
             "stream":true
           }
         }
-      }
-    },
-    "ncsaollama": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "NCSA Ollama",
-      "options": {
-        "baseURL": "{env:NCSA_OLLAMA_URL}"
-      },
-      "models": {
-        // Tested and works with mcp tools
-        "gpt-oss:20b": {
-          "name": "GPT-OSS 20B",
-          "options": {
-            "stream":true
-          }
-        },
-        "gpt-oss:120b": {
-          "name": "GPT-OSS 120B",
-          "options": {
-            "stream":true
-          }
-        },
-        "qwen3:32b": {
-          "name": "Qwen 3 32B",
-          "options": {
-            "stream":true
-          }
-        },
-        // Incredibly slow
-        "llama3.1:70b-instruct-fp16": {
-          "name": "Llama 3.1 70B Instruct FP16",
-          "options": {
-            "stream":true
-          }
-        },
-        // Doesn't seem to know about mcp tools but no api error
-        "llama4:16x17b": {
-          "name": "Llama 4 16x17B",
-          "options": {
-            "stream":true
-          }
-        }
-        // ### Doesn't support tools ###
-        // "deepseek-r1:14b-qwen-distill-fp16": {
-        //   "name": "DeepSeek R1 14B",
-        //   "options": {
-        //     "stream":true
-        //   }
-        // },
-        // "deepseek-r1:32b": {
-        //   "name": "DeepSeek R1 32B",
-        //   "options": {
-        //     "stream":true
-        //   }
-        // },
-        // "deepseek-r1:70b": {
-        //   "name": "DeepSeek R1 70B",
-        //   "options": {
-        //     "stream":true
-        //   }
-        // },
-        // "gemma3:27b": {
-        //   "name": "Gemma 3 27B",
-        //   "options": {
-        //     "stream":true
-        //   }
-        // },
-        // "llama-guard3:8b": {
-        //   "name": "Llama Guard 3 8B",
-        //   "options": {
-        //     "stream":true
-        //   }
-        // },  
       }
     }
   },
@@ -129,9 +56,9 @@
       // Prompt sent to the llm
       "template": "Use the send_support_report tool to send an issue report to the Delta support team. This report will contain the full conversation history and system information about where the report originated.",
       // Description shown in the TUI
-      "description": "Report an issue to the Delta support team"
-      //"agent": "support"
-      //"model": "ncsaollama/qwen3:32b"
+      "description": "Report an issue to the Delta support team",
+      "agent": "support",
+      "model": "ncsahosted/Qwen/Qwen3-VL-32B-Instruct"
     }
   },
   // I'm disabling sharing as i don't think this is a feature we want on Delta
