@@ -10,6 +10,7 @@ import {
 import nodemailer from 'nodemailer';
 import React from 'react';
 import { render } from '@react-email/render';
+import readline from 'readline';
 
 // Import env for system name and email configuration
 const env = {
@@ -75,9 +76,9 @@ const ConversationEmail = ({ messages, systemInfo, reportType }: {
       ),
       React.createElement("div", { className: "conversation" },
         messages.map((msg, i) => (
-          React.createElement("div", { 
-            key: i, 
-            className: `message ${msg.role}` 
+          React.createElement("div", {
+            key: i,
+            className: `message ${msg.role}`
           },
             React.createElement("div", { className: "role" }, `${msg.role.toUpperCase()}:`),
             React.createElement("div", { className: "content" }, msg.content)
@@ -108,8 +109,7 @@ class ReportServer {
     );
 
     this.setupToolHandlers();
-    
-    // Error handling
+
     this.server.onerror = (error) => console.error('[MCP Error]', error);
     process.on('SIGINT', async () => {
       await this.server.close();
@@ -118,7 +118,6 @@ class ReportServer {
   }
 
   private setupToolHandlers() {
-    // List available tools
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       return {
         tools: [
@@ -134,15 +133,15 @@ class ReportServer {
                   items: {
                     type: 'object',
                     properties: {
-                      role: { type: 'string', description: 'Message role (user/assistant/system)' },
-                      content: { type: 'string', description: 'Message content' }
+                      role: { type: 'string' },
+                      content: { type: 'string' }
                     },
                     required: ['role', 'content']
                   }
                 },
                 report_type: {
                   type: 'string',
-                  description: 'Type of report (Issue Report, Bug Report, Feature Request, etc.)',
+                  description: 'Type of report (Issue Report, Bug Report, etc.)',
                   default: 'Support Report'
                 }
               },
@@ -153,48 +152,30 @@ class ReportServer {
       };
     });
 
-    // Handle tool calls
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name, arguments: args } = request.params;
-
       try {
-        switch (name) {
-          case 'send_support_report':
-            return await this.sendSupportReport(args);
-          default:
-            throw new Error(`Unknown tool: ${name}`);
+        if (name === 'send_support_report') {
+          return await this.sendSupportReport(args);
         }
+        throw new Error(`Unknown tool: ${name}`);
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
         return {
-          content: [
-            {
-              type: 'text',
-              text: `Error: ${errorMessage}`
-            }
-          ]
+          content: [{ type: 'text', text: `Error: ${error instanceof Error ? error.message : String(error)}` }]
         };
       }
     });
   }
 
   private async sendSupportReport(args: any) {
-    const {
-      messages,
-      report_type = 'Support Report'
-    } = args;
-
+    const { messages, report_type = 'Support Report' } = args;
     if (!messages || !Array.isArray(messages)) {
       throw new Error('Messages array is required');
     }
 
-    // Use environment variable for recipient
     const recipient = env.EMAIL_RECIPIENT;
-    
-    // Add system information to the report
     const systemInfoData = this.getSystemInfo();
-    
-    // Create email content with normal priority
+
     const subject = `${env.SYSTEM_NAME} ${report_type}`;
     const plainText = this.createPlainTextReport(messages, systemInfoData, report_type);
     const htmlContent = await render(
@@ -205,33 +186,19 @@ class ReportServer {
       })
     );
 
-    await this.sendEmail({
-      to: recipient,
-      subject,
-      text: plainText,
-      html: htmlContent
-    });
-
+    await this.sendEmail({ to: recipient, subject, text: plainText, html: htmlContent });
     return {
-      content: [
-        {
-          type: 'text',
-          text: `Support report sent successfully to ${recipient}\nSubject: ${subject}`
-        }
-      ]
+      content: [{ type: 'text', text: `Support report sent successfully to ${recipient}\nSubject: ${subject}` }]
     };
   }
-
 
   private createPlainTextReport(
     messages: Array<{ role: string; content: string }>,
     additionalInfo: { [key: string]: string } | null = null,
     reportType: string = 'Report'
   ): string {
-    let report = `${env.SYSTEM_NAME} ${reportType}\n`;
-    report += `Generated: ${new Date().toISOString()}\n`;
+    let report = `${env.SYSTEM_NAME} ${reportType}\nGenerated: ${new Date().toISOString()}\n`;
     report += '='.repeat(50) + '\n\n';
-
     if (additionalInfo) {
       report += 'SYSTEM INFORMATION:\n';
       report += '-'.repeat(25) + '\n';
@@ -240,14 +207,11 @@ class ReportServer {
       });
       report += '\n';
     }
-
     report += 'CONVERSATION HISTORY:\n';
     report += '-'.repeat(25) + '\n';
-    
     messages.forEach((msg, i) => {
       report += `\n[${i + 1}] ${msg.role.toUpperCase()}:\n${msg.content}\n`;
     });
-
     return report;
   }
 
@@ -261,20 +225,26 @@ class ReportServer {
     };
   }
 
-  private async sendEmail(options: {
-    to: string;
-    subject: string;
-    text: string;
-    html: string;
-  }) {
-    // Create transporter using sendmail (same as EmailCommand)
+  private async sendEmail(options: { to: string; subject: string; text: string; html: string }) {
     const transporter = nodemailer.createTransport({
       sendmail: true,
       newline: 'unix',
       path: '/usr/sbin/sendmail',
     });
 
-    const fromEmail = process.env.EMAIL_FROM || `noreply@${env.SYSTEM_NAME.toLowerCase()}.ncsa.illinois.edu`;
+    const fromEmail =
+      process.env.EMAIL_FROM ||
+      `noreply@${env.SYSTEM_NAME.toLowerCase()}.ncsa.illinois.edu`;
+
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    const confirm = await new Promise<string>((resolve) => {
+      rl.question(`Send email to ${options.to} with subject "${options.subject}"? (y/n): `, resolve);
+    });
+    rl.close();
+    if (confirm.trim().toLowerCase() !== 'y') {
+      console.log('Email sending cancelled.');
+      return;
+    }
 
     await transporter.sendMail({
       from: fromEmail,
@@ -283,6 +253,8 @@ class ReportServer {
       text: options.text,
       html: options.html,
     });
+
+    console.log(`✅ Email sent to ${options.to}`);
   }
 
   async run() {
