@@ -130,7 +130,6 @@ Use `example.env` and `example.env.atlassian` as references. Export directly or 
 ### Core variables
 
 - `NCSA_LLM_URL` – Base URL for NCSA Hosted models provider
-- `NCSA_OLLAMA_URL` – Base URL for NCSA Ollama provider
 - `ILLINOIS_CHAT_API_KEY` – Required for `illinois-chat-server`
 
 ### Atlassian (containerized MCP)
@@ -143,7 +142,7 @@ Configure `.env.atlassian` (see `example.env.atlassian`). Common options:
 
 ## Usage Examples
 
-Inside the Opencode TUI, pick a model (e.g., `ncsaollama/qwen3:32b`) and ask the assistant to use tools.
+Inside the Opencode TUI, pick a model (e.g., `ncsahosted/Qwen/Qwen3-VL-32B-Instruct`) and ask the assistant to use tools.
 
 ### Slurm status
 
@@ -168,8 +167,21 @@ See `opencode.jsonc` for providers, models, and MCP server commands. Example pro
 ```json
 {
   "provider": {
-    "ncsahosted": { "options": { "baseURL": "{env:NCSA_LLM_URL}" } },
-    "ncsaollama": { "options": { "baseURL": "{env:NCSA_OLLAMA_URL}" } }
+    "ncsahosted": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "my_provider_name",
+      "options": {
+        "baseURL": "{env:my_url}" // load the url from a environment variable
+      },
+      "models": {
+        "Qwen/Qwen3-VL-32B-Instruct": {
+          "name": "my_model_name",
+          "options": {
+            "stream":true
+          }
+        }
+      }
+    }
   }
 }
 ```
