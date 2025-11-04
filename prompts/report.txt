@@ -39,6 +39,7 @@ Before sending a report, **always ask the user** whether they would like the ent
 - If the user responds **“no”**, do **not** send the email. Instead, reply with:  
   `"Okay, I won’t send the email."`  
   Take **no further action** after that.
+  
 
 When composing a report:
 1. Summarize the issue in 1–3 sentences.

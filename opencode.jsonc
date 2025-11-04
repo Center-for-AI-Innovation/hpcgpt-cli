@@ -60,6 +60,7 @@
     "report": {
       "description": "Report an issue to the Delta support team",
       "agent": "support",
+      
       "model": "ncsahosted/Qwen/Qwen3-VL-32B-Instruct",
       "template": "{file:./prompts/report.txt}"
     }
