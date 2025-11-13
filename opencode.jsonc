@@ -58,12 +58,13 @@
   },
   "command": {
     "report": {
+      // "template": "Use the send_support_report tool to send an issue report to the Delta support team. This report will contain the full conversation history and system information about where the report originated. Before sending the email, confirm from the user if they would like the entire conversation history to be sent or not. If they say yes, go on and send the report but if they say no just say Okay I wont send the email",
+      // Description shown in the TUI
+      "template": "{file:./prompts/report.txt}",
       "description": "Report an issue to the Delta support team",
       "agent": "support",
-      
       "model": "ncsahosted/Qwen/Qwen3-VL-32B-Instruct",
-      "template": "{file:./prompts/report.txt}"
-    }
+      }
   },
   // I'm disabling sharing as i don't think this is a feature we want on Delta
   "share": "disabled",
