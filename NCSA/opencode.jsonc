@@ -2,15 +2,15 @@
   "$schema": "https://opencode.ai/config.json",
   "mode": {
     "support": {
-        "model": "ncsahosted/Qwen/Qwen3-VL-32B-Instruct",
-        "prompt": "{file:./prompts/support.txt}",
-        "tools": {
-          "write": true,
-          "edit": true,
-          "bash": true
-        }
-      },
-    },
+      "model": "ncsahosted/Qwen/Qwen3-VL-32B-Instruct",
+      "prompt": "{file:./prompts/support.txt}",
+      "tools": {
+        "write": true,
+        "edit": true,
+        "bash": true
+      }
+    }
+  },
   "provider": {
     "ncsahosted": {
       "npm": "@ai-sdk/openai-compatible",
@@ -22,40 +22,38 @@
         "Qwen/Qwen3-VL-32B-Instruct": {
           "name": "Qwen 3 32B Instruct",
           "options": {
-            "stream":true
+            "stream": true
           }
         }
       }
     }
   },
-  // Can add MCP Servers with this field
   "mcp": {
     "slurm-mcp-server": {
-      "type": "local",
-      "command": ["bun", "run", "slurm-mcp-server", ">", "logs/slurm-mcp-server.log"],
+      "type": "remote",
+      "url": "http://dt-hpcgpt:8001/mcp",
       "enabled": true
     },
     "illinois-chat-server": {
-      "type": "local",
-      "command": ["bun", "run", "illinois-chat-mcp-server", ">", "logs/illinois-chat-server.log"],
+      "type": "remote", 
+      "url": "http://dt-hpcgpt:8002/mcp",
       "enabled": true
     },
     "report-server": {
-      "type": "local",
-      "command": ["bun", "run", "report-server", ">", "logs/report-server.log"],
+      "type": "remote",
+      "url": "http://dt-hpcgpt:8003/mcp", 
       "enabled": true
     },
-    "atlassian-mcp-server": {
-      "type": "local",
-      "command": ["apptainer", "run", "--env-file", "NCSA/.env.atlassian", "containers/atlassian-mcp-server.sif"],
-      "enabled": true
+    "knowledge-base-server": {
+      "type": "remote",
+      "url": "http://dt-hpcgpt:8004/mcp",
+      "enabled": false
     }
   },
   "command": {
     "report": {
-      // Prompt sent to the llm
-      "template": "Use the send_support_report tool to send an issue report to the Delta support team. This report will contain the full conversation history and system information about where the report originated.",
       // Description shown in the TUI
+      "template": "{file:./prompts/report.txt}",
       "description": "Report an issue to the Delta support team",
       "agent": "support",
       "model": "ncsahosted/Qwen/Qwen3-VL-32B-Instruct"
@@ -63,13 +61,9 @@
   },
   // I'm disabling sharing as i don't think this is a feature we want on Delta
   "share": "disabled",
-  // Configure permissions to control what AI agents can do by default. 
+  // Configure permissions to control what AI agents can do by default.
   "permission": {
     "edit": "ask",
     "bash": "ask"
-  },
-  "theme": "opencode"
-  // Can remove any providers we don't want with this field
-  //"disabled_providers": ["openai", "gemini"]
-  
+  }
 }

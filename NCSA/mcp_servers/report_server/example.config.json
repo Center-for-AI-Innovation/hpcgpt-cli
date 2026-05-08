@@ -1,0 +1,24 @@
+{
+    "host": "127.0.0.1",
+    "port": 8003,
+    "log_file": "logs/Latest.log",
+    "log_level": "INFO",
+    "mode" : "jira",
+    "email": {
+        "sender_address": "noreply@your.institution.edu",
+        "recipient_address": "help@your.institution.edu",
+        "subject": "My System : Support Report"
+    },
+    "jira" : {
+        "url": "https://jira.your.institution.edu",
+        "authentication_method": "personal_access_token",
+        "personal_access_token": "your_personal_access_token",
+        "username": "your_username",
+        "api_key": "your_api_key",
+        "project": "your_jira_project_name",
+        "issue_type": "your_jira_issue_type",
+        "default_fields": {
+            "your_custom_field_name": "can_set_any_field_to_a_default_value"
+        }
+    }
+}

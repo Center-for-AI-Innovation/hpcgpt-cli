@@ -1,0 +1,4 @@
+fastmcp==3.0.2
+pydantic==2.12.5
+jira>=3.8.0
+rich-argparse>=1.6.0

@@ -1,231 +1,88 @@
-# Illinois Chat Server MCP
+# Illinois Chat MCP Server (Python)
 
-A Model Context Protocol (MCP) server that provides access to the Illinois Chat API for querying Delta documentation and AI-related resources.
+A [Model Context Protocol](https://modelcontextprotocol.io/) server written in Python with [FastMCP](https://github.com/jlowin/fastmcp). It forwards tool calls to the Illinois Chat HTTP API so assistants can answer questions grounded in **Delta** and **Delta AI** documentation (retrieval-augmented courses `Delta-Documentation` and `DeltaAI-Documentation`).
 
-## Overview
+clients connect to a URL such as `http://127.0.0.1:8000/mcp`.
 
-This MCP server enables AI assistants to query Delta documentation through the Illinois Chat API, providing access to comprehensive HPC (High Performance Computing) documentation and AI resources.
+## Tools
 
-## Features
+| Tool | Purpose |
+|------|---------|
+| `query_delta_documentation` | Query general Delta / HPC documentation (`Delta-Documentation`). |
+| `query_delta_ai_documentation` | Query Delta AI documentation (`DeltaAI-Documentation`). |
 
-### Available Tools
+Each tool takes a single string argument: `query`.
 
-#### 1. `delta-docs`
-Query the Delta documentation for general HPC information.
+## Requirements
 
-**Parameters:**
-- `message` (string): The query message to send to the Illinois Chat API
+- Python 3.10+ (tested with 3.12)
+- Network access to your Illinois Chat API endpoint
+- Packages:
 
-**Example:**
-```json
-{
-  "message": "How do I submit a SLURM job on Delta?"
-}
+```bash
+pip install fastmcp requests pydantic rich-argparse
 ```
-
-#### 2. `delta-ai-docs`  
-Query the Delta AI documentation for AI/ML specific information.
-
-**Parameters:**
-- `message` (string): The query message to send to the Illinois Chat API for AI documentation
-
-**Example:**
-```json
-{
-  "message": "What GPU resources are available for deep learning?"
-}
-```
-
-## Installation
-
-### Prerequisites
-- Node.js >= 18
-- Access to Illinois Chat API
-- Environment variables configured
-
-### Setup
-
-1. **Install dependencies:**
-   ```bash
-   cd NCSA/mcp_servers/illinois_chat_server
-   bun install
-   # or
-   npm install
-   ```
-
-2. **Build the server:**
-   ```bash
-   bun run build
-   # or
-   npm run build
-   ```
-
-3. **Set up environment variables:**
-   ```bash
-   export ILLINOIS_CHAT_API_KEY="your_api_key_here"
-   export ILLINOIS_CHAT_COURSE="Delta-Documentation"  # or "Delta-AI-Documentation"
-   ```
 
 ## Configuration
 
-### OpenCode Integration
-
-Add this to your `NCSA/opencode.jsonc` file:
-
-```json
-{
-  "mcp": {
-    "illinois-chat-server": {
-      "type": "local",
-      "command": ["bun", "run", "illinois-chat-server"],
-      "enabled": true
-    }
-  }
-}
-```
-
-### Environment Variables
-
-The server requires the following environment variables:
-
-| Variable | Description |
-|----------|-------------|
-| `ILLINOIS_CHAT_API_KEY` | Your Illinois Chat API key |
-
-## Usage
-
-### Running the Server
+1. Copy the example config and edit values:
 
 ```bash
-# Development mode
-bun run dev
-
-# Production mode
-bun run start
+cd NCSA/mcp_servers/pychat_server
+cp config.example config.json
 ```
 
-### Tool Usage Examples
+2. Set at least `illinois_chat_url`, `illinois_chat_api_key`, and `illinois_chat_model` in `config.json`. Optional fields use defaults from `src/config.py` if omitted (`host`, `port`, `log_file`, `illinois_chat_system_prompt`).
 
-#### Querying Delta Documentation
-```javascript
-// Query general Delta documentation
-{
-  "tool": "delta-docs",
-  "arguments": {
-    "message": "How do I check my job status in SLURM?"
-  }
-}
+| Field | Description |
+|--------|-------------|
+| `host` | Bind address (default `0.0.0.0`). |
+| `port` | Listen port (default `8000`). |
+| `log_file` | Append-only log path; parent directory is created if needed. |
+| `illinois_chat_url` | Full URL of the chat/completions endpoint (organization-specific). |
+| `illinois_chat_api_key` | API key sent in the JSON body as `api_key`. |
+| `illinois_chat_model` | Model name for the upstream API. |
+| `illinois_chat_system_prompt` | System message prepended to every request (has a sensible HPC default if unset in schema). |
+
+Command-line flags exist for the same settings (`--host`, `--port`, `--illinois-chat-url`, etc.); see `python server.py --help`. The default config file path is `-c config.json`.
+
+## Run
+
+```bash
+python server.py
+# or
+python server.py -c /path/to/config.json -v
 ```
 
-#### Querying Delta AI Documentation
-```javascript
-// Query AI-specific documentation
-{
-  "tool": "delta-ai-docs", 
-  "arguments": {
-    "message": "What are the available PyTorch versions on Delta?"
-  }
-}
+On startup the server calls `verify_chat_connection()` (a minimal `retrieval_only` request) so misconfigured URLs or keys fail fast.
+
+- **MCP endpoint:** `http://<host>:<port>/mcp` (FastMCP default Streamable HTTP path is `/mcp` unless overridden by FastMCP settings).
+
+Point your MCP client at that URL with Streamable HTTP transport.
+
+## Behavior notes
+
+- Upstream requests use `temperature` **0.3**, `stream: false`, and `retrieval_only: false` for normal tool calls.
+- Responses are normalized from several possible JSON shapes (`message`, OpenAI-style `choices[0].message.content`, or `response`).
+
+## Project layout
+
 ```
-
-## API Integration
-
-The server integrates with the Illinois Chat API at `https://uiuc.chat/api/chat-api/chat` using the following request format:
-
-```javascript
-{
-  "model": "Qwen/Qwen2.5-VL-72B-Instruct",
-  "messages": [
-    {
-      "role": "user", 
-      "content": "your query here"
-    }
-  ],
-  "api_key": "your_api_key",
-  "course_name": "Delta-Documentation",
-  "stream": false,
-  "temperature": 0.1,
-  "retrieval_only": false
-}
+pychat_server/
+├── server.py          # MCP server and tools
+├── config.example     # Template for config.json
+├── src/
+│   ├── config.py      # Pydantic config loading
+│   └── logging.py     # File logging and FastMCP log routing
+└── logs/              # Typical location for log_file (optional)
 ```
-
-## Error Handling
-
-The server includes comprehensive error handling for:
-
-- **API Connection Issues**: Network timeouts and connection failures
-- **Authentication Errors**: Invalid API keys or access permissions
-- **Malformed Requests**: Invalid parameters or missing required fields
-- **Rate Limiting**: Automatic retry logic for rate-limited requests
-
-## Development
-
-### Project Structure
-```
-illinois_chat_server/
-├── dist/           # Compiled JavaScript output
-├── src/            # TypeScript source files (if using TypeScript)
-├── package.json    # Package configuration
-├── README.md       # This file
-└── bun.lock       # Lock file for dependencies
-```
-
-### Scripts
-
-- `bun run build` - Compile TypeScript to JavaScript
-- `bun run dev` - Run in development mode with hot reload
-- `bun run start` - Run the compiled server
-- `bun run illinois-chat-server` - Run the server (used by MCP)
 
 ## Troubleshooting
 
-### Common Issues
-
-1. **"API key not found"**
-   - Ensure `ILLINOIS_CHAT_API_KEY` environment variable is set
-   - Verify the API key is valid and has proper permissions
-
-2. **"Course not found"**
-   - Check that `ILLINOIS_CHAT_COURSE` is set correctly
-   - Verify access to the specified course documentation
-
-3. **"Connection timeout"**
-   - Check network connectivity to `https://uiuc.chat`
-   - Verify firewall settings allow HTTPS connections
-
-4. **"Server not responding"**
-   - Ensure the server is built: `bun run build`
-   - Check that Node.js version >= 18 is installed
-   - Verify all dependencies are installed: `bun install`
-
-### Debug Mode
-
-Enable debug logging by setting:
-```bash
-export DEBUG=illinois-chat-server
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/new-feature`
-3. Make your changes and test thoroughly
-4. Commit your changes: `git commit -am 'Add new feature'`
-5. Push to the branch: `git push origin feature/new-feature`
-6. Submit a pull request
+- **Startup fails after “verify”:** Check `illinois_chat_url`, API key, and model name; confirm HTTP 200 and JSON from the Illinois Chat API.
+- **401 / 403 on verify:** Key rejected by the upstream service.
+- **404 on verify:** Wrong path in `illinois_chat_url`.
 
 ## License
 
-MIT License - see LICENSE file for details.
-
-## Support
-
-For support and questions:
-- Check the [Delta documentation](https://docs.delta.ncsa.illinois.edu/)
-- Contact the Delta support team
-- File issues in the project repository
-
----
-
-**Note**: This MCP server is designed specifically for use with the Delta HPC system at NCSA/University of Illinois. Ensure you have proper access credentials before attempting to use this server.
-
+Same as the parent repository (see root `LICENSE`).
