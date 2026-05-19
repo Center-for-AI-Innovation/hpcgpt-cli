@@ -1,0 +1,4 @@
+llmflux
+pandas
+pydantic
+rich-argparse

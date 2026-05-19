@@ -1,0 +1,11 @@
+{
+    "account": "bfzk-delta-gpu",
+    "partition": "gpuA100x4",
+    "time": "06:00:00",
+    "mem": "32GB",
+    "gpus_per_node": 1,
+    "nodes": 1,
+    "cpus_per_task": 8,
+    "model": "Qwen3-8B",
+    "batch_size": 4
+}
