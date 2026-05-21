@@ -2,18 +2,14 @@ import os
 import shutil
 import logging
 import argparse
-from pathlib import Path
 
 from src.log_utils import setup_logger
-from src.stages.summarization import summarize_tickets
-from src.stages.evaluation import evaluate_summarization
-from src.stages.deduplication import remove_duplicates
-from src.stages.clustering import cluster_topics
+from src.stages import summarize_tickets, evaluate_summarization, remove_duplicates, cluster_topics
 
 def parse_command_line() -> argparse.Namespace:
     from rich_argparse import RichHelpFormatter
 
-    def parse_filepath(path: str) -> Path:
+    def parse_filepath(path: str):
         """Command line argument parser for file paths"""
         # Check path exists
         if not os.path.exists(path):
@@ -43,9 +39,6 @@ def parse_command_line() -> argparse.Namespace:
     optional_args.add_argument('-m', '--model',
                     type=str, 
                     help="Model to use. Use llmflux --show-models to list available models.")
-    optional_args.add_argument('-b', '--batch-size',
-                    type=int,
-                    help="Batch size to use.")
     optional_args.add_argument("--log-file",
                     default="logs/Latest.log",
                     type=str,

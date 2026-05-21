@@ -1,18 +1,14 @@
 import os
-import json
-import argparse
 import logging
+import argparse
 
-from llmflux.slurm import SlurmRunner
-from llmflux.core.config import Config, EngineConfig
-
-from ..log_utils import setup_logger
-from ..llmflux_utils import SlurmConfig, submit_llmflux_job, monitor_llmflux_job
+from src.log_utils import setup_logger
+from src.stages import cluster_topics
 
 def parse_command_line() -> argparse.Namespace:
     from rich_argparse import RichHelpFormatter
 
-    def parse_filepath(path: str) -> Path:
+    def parse_filepath(path: str):
         """Command line argument parser for file paths"""
         # Check path exists
         if not os.path.exists(path):
@@ -32,7 +28,7 @@ def parse_command_line() -> argparse.Namespace:
     # Optional arguments
     optional_args = parser.add_argument_group('Optional arguments', '')
     optional_args.add_argument('-c', '--slurm-config',
-                    default="../../config/slurm_config.json",
+                    default="../config/slurm_config.json",
                     type=parse_filepath,
                     help="Path to the Slurm configuration file. Defaults to ../config/slurm_config.json")
     optional_args.add_argument('-o', '--output', 
@@ -41,11 +37,8 @@ def parse_command_line() -> argparse.Namespace:
     optional_args.add_argument('-m', '--model',
                     type=str, 
                     help="Model to use. Use llmflux --show-models to list available models.")
-    optional_args.add_argument('-b', '--batch-size',
-                    type=int,
-                    help="Batch size to use.")
     optional_args.add_argument('-p', '--prompt',
-                    default="../../prompts/clustering.md",
+                    default="../prompts/clustering.md",
                     type=parse_filepath, 
                     help='Path to the file to use as the system prompt for the LLM.')
     optional_args.add_argument("--log-file",
@@ -63,40 +56,6 @@ def parse_command_line() -> argparse.Namespace:
                     help="Change the logging level from INFO to DEBUG",)
     
     return parser.parse_args()
-
-
-def write_clustering_prompts(clustering_data: list[dict], prompt: str, output_file: str):
-    with open(output_file, "w") as f:
-        for item in clustering_data:
-            f.write(json.dumps({
-                "prompt": prompt,
-                "input": item["input"]
-            }) + "\n")
-
-def cluster_topics(prompt: str, input_file: str, output_file: str, model: str, batch_size: int, slurm_config_path: str):
-    # Load clustering data
-    logging.debug(f"Loading data from: {input_file}")
-    with open(input_file, "r") as fh:
-        clustering_data = json.load(fh)
-    logging.info(f"Loaded {len(clustering_data)} topics from {input_file}")
-
-    # Create prompt file for LLMFLUX
-    basename = os.path.basename(output_file).split('.')[0]
-    if basename.endswith("_clstr_results"): # This is for ease of use in the pipeline
-        basename = basename[:-len("_clstr_results")]
-    llmflux_prompt_file = os.path.join(".llmflux/data/input", f"{basename}_clstr_prompts.jsonl")
-    write_clustering_prompts(clustering_data, prompt, llmflux_prompt_file)
-
-    # Submit clustering job
-    slurm_config = SlurmConfig.load_from_json(slurm_config_path)
-    # Override config values if provided on the command line
-    model = slurm_config.model if model is None else model
-    batch_size = slurm_config.batch_size if batch_size is None else batch_size
-    
-    job_id = submit_llmflux_job(llmflux_prompt_file, output_file, model, batch_size, slurm_config, job_name="Clustering")
-
-    # Monitor clustering job
-    monitor_llmflux_job(job_id, output_file, job_name="Clustering")
 
 if __name__ == "__main__":
     args = parse_command_line()
