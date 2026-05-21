@@ -119,16 +119,16 @@ def dedup_by_topic(pairs: list[dict], topic_results_path: str) -> list[dict]:
 
 def remove_duplicates(prompt: str, input_file: str, output_file: str, model: str, batch_size: int, slurm_config_path: str):
     # Load evaluation data
-    logging.info(f"Loading summarization data from: {input_file}")
+    logging.debug(f"Loading summarization data from: {input_file}")
     with open(input_file, "r") as fh:
         summarization_data = json.load(fh)
     logging.info(f"Loaded {len(summarization_data)} Q/A pairs from {input_file}")
 
     # Create prompt file for LLMFLUX
-    basename = os.path.basename(input_file).split('.')[0]
-    if basename.endswith("_summarization_results"): # This is for ease of use in the pipeline
-        basename = basename[:-len("_summarization_results")]
-    llmflux_prompt_file = os.path.join(os.path.dirname(input_file), f"{basename}_deduplication_prompts.jsonl")
+    basename = os.path.basename(output_file).split('.')[0]
+    if basename.endswith("_dedup_results"): # This is for ease of use in the pipeline
+        basename = basename[:-len("_dedup_results")]
+    llmflux_prompt_file = os.path.join(".llmflux/data/input", f"{basename}_dedup_prompts.jsonl")
     pairs = extract_qa_pairs(summarization_data)
     write_deduplication_prompts(prompt, pairs, llmflux_prompt_file)
 
@@ -141,7 +141,7 @@ def remove_duplicates(prompt: str, input_file: str, output_file: str, model: str
     job_id = submit_llmflux_job(llmflux_prompt_file, output_file, model, batch_size, slurm_config, job_name="Deduplication")
     
     # Monitor deduplication job
-    monitor_llmflux_job(job_id, job_name="Deduplication")
+    monitor_llmflux_job(job_id, output_file, job_name="Deduplication")
 
     # Deduplicate by topic
     logging.info(f"Deduplicating by topic")
@@ -155,9 +155,9 @@ if __name__ == "__main__":
     args = parse_command_line()
     if args.output is None:
         basename = os.path.basename(args.data).split('.')[0]
-        if basename.endswith("_summarization_results"): # This is for ease of use in the pipeline
-            basename = basename[:-len("_summarization_results")]
-        args.output = f"data/output/{basename}_deduplicated_results.jsonl"
+        if basename.endswith("_sum_results"): # This is for ease of use in the pipeline
+            basename = basename[:-len("_sum_results")]
+        args.output = f"data/output/{basename}_dedup_results.jsonl"
 
     file_log_level = logging.DEBUG if args.verbose else logging.INFO
     console_log_level = logging.DEBUG if args.verbose else logging.INFO

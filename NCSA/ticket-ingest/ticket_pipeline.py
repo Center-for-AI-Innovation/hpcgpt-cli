@@ -1,5 +1,8 @@
 import os
+import shutil
+import logging
 import argparse
+from pathlib import Path
 
 from src.log_utils import setup_logger
 from src.stages.summarization import summarize_tickets
@@ -57,34 +60,43 @@ def parse_command_line() -> argparse.Namespace:
                     action="store_true",
                     help="Change the logging level from INFO to DEBUG",)
 
+    return parser.parse_args()
+
 def main(args: argparse.Namespace):
     label = os.path.basename(args.data).split('.')[0]
     # Run Summarization of tickets to Q/A pairs
-    logger.info(f"### Starting Pipeline Stage : Summarizing tickets to Q/A pairs")
+    logging.info(f"### Starting Pipeline Stage : Summarizing tickets to Q/A pairs")
     with open("prompts/summarization.md", "r") as f:
         system_prompt = f.read()
-    summarize_tickets(system_prompt, args.data, f"data/input/{label}_summarization_results.jsonl", args.model, args.batch_size, args.slurm_config)
+    summarize_tickets(system_prompt, args.data, f"../llmflux/data/output/{label}_sum_results.jsonl", args.model, args.batch_size, args.slurm_config)
 
     # Evaluate summarization results
-    logger.info(f"### Starting Pipeline Stage : Evaluating summarization results")
+    logging.info(f"### Starting Pipeline Stage : Evaluating summarization results")
     with open("prompts/evaluation.md", "r") as f:
         system_prompt = f.read()
-    evaluate_summarization(system_prompt, f"data/input/{label}_summarization_results.jsonl", f"data/output/{label}_evaluation_results.jsonl", args.model, args.batch_size, args.slurm_config)
+    evaluate_summarization(system_prompt, f"../llmflux/data/output/{label}_sum_results.jsonl", f"../llmflux/data/output/{label}_eval_results.jsonl", args.model, args.batch_size, args.slurm_config)
+
+    shutil.copy(f"../llmflux/data/output/{label}_eval_results.jsonl", args.output)
+    logging.info("Exiting early for debugging")
+    exit(0)
 
     # Remove duplicates
-    logger.info(f"### Starting Pipeline Stage : Removing duplicates")
+    logging.info(f"### Starting Pipeline Stage : Removing duplicates")
     with open("prompts/deduplication.md", "r") as f:
         system_prompt = f.read()
-    remove_duplicates(system_prompt, "data/input/evaluation_results.jsonl", "data/output/deduplicated_results.jsonl", args.model, args.batch_size, args.slurm_config)
+    remove_duplicates(system_prompt, f"../llmflux/data/output/{label}_eval_results.jsonl", f"../llmflux/data/output/{label}_dedup_results.jsonl", args.model, args.batch_size, args.slurm_config)
 
     # Cluster topics
-    logger.info(f"### Starting Pipeline Stage : Clustering topics")
+    logging.info(f"### Starting Pipeline Stage : Clustering topics")
     with open("prompts/clustering.md", "r") as f:
         system_prompt = f.read()
-    cluster_topics(system_prompt, "data/output/deduplicated_results.jsonl", "data/output/clustered_results.jsonl", args.model, args.batch_size, args.slurm_config)
+    cluster_topics(system_prompt, f"../llmflux/data/output/{label}_dedup_results.jsonl", f"../llmflux/data/output/{label}_clstr_results.jsonl", args.model, args.batch_size, args.slurm_config)
 
-    logger.info(f"### Pipeline completed successfully")
-    logger.info(f"### Results saved to: {args.output}")
+    # Copy results to final output file
+    shutil.copy(f"../llmflux/data/output/{label}_clstr_results.jsonl", args.output)
+
+    logging.info(f"### Pipeline completed successfully")
+    logging.info(f"### Results saved to: {args.output}")
 
 if __name__ == "__main__":
     args = parse_command_line()

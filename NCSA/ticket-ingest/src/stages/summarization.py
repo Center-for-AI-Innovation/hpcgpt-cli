@@ -134,7 +134,10 @@ def summarize_tickets(prompt: str, input_file: str, output_file: str, model: str
     logging.info(f"Loaded {len(df)} tickets from {input_file}")
 
     # Create prompt file for LLMFLUX
-    llmflux_prompt_file = os.path.join(os.path.dirname(input_file), f"{os.path.basename(input_file).split('.')[0]}_summarization_prompts.jsonl")
+    basename = os.path.basename(output_file).split('.')[0]
+    if basename.endswith("_sum_results"): # This is for ease of use in the pipeline
+        basename = basename[:-len("_sum_results")]
+    llmflux_prompt_file = os.path.join(".llmflux/data/input", f"{basename}_sum_prompts.jsonl")
     prep_ticket_data(df, prompt, llmflux_prompt_file)
 
     # Submit summarization job
@@ -146,19 +149,19 @@ def summarize_tickets(prompt: str, input_file: str, output_file: str, model: str
     job_id = submit_llmflux_job(llmflux_prompt_file, output_file, model, batch_size, slurm_config, job_name="Summarization")
 
     # Monitor summarization job
-    monitor_llmflux_job(job_id, job_name="Summarization")
+    monitor_llmflux_job(job_id, output_file, job_name="Summarization")
 
 if __name__ == "__main__":
     args = parse_command_line()
     if args.output is None:
-        args.output = f"data/output/{os.path.basename(args.data).split('.')[0]}_summarization_results.jsonl"
+        args.output = f"data/output/{os.path.basename(args.data).split('.')[0]}_sum_results.jsonl"
 
     file_log_level = logging.DEBUG if args.verbose else logging.INFO
     console_log_level = logging.DEBUG if args.verbose else logging.INFO
-    logger = setup_logger(args.log_file, file_log_level, console_log_level, use_color=True, writemode='a')
+    setup_logger(args.log_file, file_log_level, console_log_level, use_color=True, writemode='a')
 
     # Load system prompt
-    logger.info(f"Loading system prompt from: {args.prompt}")
+    logging.debug(f"Loading system prompt from: {args.prompt}")
     with open(args.prompt, "r") as f:
         system_prompt = f.read()
 

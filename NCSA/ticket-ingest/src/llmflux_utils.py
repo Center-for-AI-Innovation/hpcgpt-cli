@@ -1,5 +1,6 @@
 import os
 import logging
+import subprocess
 
 from time import sleep
 from pathlib import Path
@@ -81,20 +82,79 @@ def submit_llmflux_job(input_file: str, output_file: str, model: str, batch_size
     logging.info(f"{job_name} job {job_id} submitted")
     return job_id
 
-def monitor_llmflux_job(job_id: str, job_name: str = "LLMFLUX"):
+_ACTIVE_SACCT_STATES = frozenset({
+    "PENDING", "RUNNING", "CONFIGURING", "COMPLETING", "REQUEUED", "RESIZING", "SUSPENDED",
+})
+_SUCCESS_SACCT_STATES = frozenset({"COMPLETED"})
+_FAILED_SACCT_STATES = frozenset({
+    "FAILED", "CANCELLED", "TIMEOUT", "NODE_FAIL", "PREEMPTED", "OUT_OF_MEMORY",
+    "BOOT_FAIL", "DEADLINE", "REVOKED",
+})
+
+
+def _get_sacct_state(job_id: str) -> str | None:
+    """Return the Slurm job state from sacct, or None if not yet in accounting."""
+    result = subprocess.run(
+        ["sacct", "-j", str(job_id), "-X", "-n", "-o", "State"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        stderr = result.stderr.strip()
+        raise RuntimeError(f"sacct failed for job {job_id}: {stderr or result.stdout.strip()}")
+
+    for line in result.stdout.splitlines():
+        state = line.strip().split()[0] if line.strip() else ""
+        if not state:
+            continue
+        # States may include a suffix (e.g. COMPLETED+).
+        return state.split("+", 1)[0]
+    return None
+
+
+def monitor_llmflux_job(job_id: str, output_file: str, job_name: str = "LLMFlux", poll_interval: float = 2.0):
     """
-    Convenience function to monitor the progress of an LLMFlux job.
+    Monitor an LLMFlux Slurm job until it finishes and the output file exists.
+
+    Uses sacct to poll job state instead of watching log or output files on disk.
 
     Args:
         job_id: Slurm Job ID to monitor.
-        job_name: Name of the job. (only used for logging purposes)
+        output_file: Path to the output file.
+        job_name: Name of the job (only used for logging).
+        poll_interval: Seconds between sacct polls.
 
     Returns:
         None.
+
+    Raises:
+        RuntimeError: If sacct fails or the job ends in a non-success state.
     """
-    while not os.path.exists(str(Path.cwd().resolve() / "logs" / f"{job_id}.out")):
-        sleep(1)
-    logging.info(f"{job_name} job {job_id} started")
+    logged_running = False
+
+    while True:
+        state = _get_sacct_state(job_id)
+
+        if state is None:
+            sleep(poll_interval)
+            continue
+
+        if state in _ACTIVE_SACCT_STATES:
+            if state == "RUNNING" and not logged_running:
+                logging.info(f"{job_name} job {job_id} started")
+                logged_running = True
+            sleep(poll_interval)
+            continue
+
+        if state in _SUCCESS_SACCT_STATES:
+            break
+
+        if state in _FAILED_SACCT_STATES:
+            raise RuntimeError(f"{job_name} job {job_id} ended with state {state}")
+
+        raise RuntimeError(f"{job_name} job {job_id} ended with unknown state {state}")
+
     while not os.path.exists(output_file):
-        sleep(1)
+        sleep(poll_interval)
     logging.info(f"{job_name} job {job_id} completed")

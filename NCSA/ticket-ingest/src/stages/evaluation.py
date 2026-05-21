@@ -116,6 +116,8 @@ def prep_evaluation_data(data, prompt: str, output_file: str):
     return len(data)
 
 def summarize_results(output_path: str) -> List[Dict[str, Any]]:
+    with open(output_path, "r") as fh:
+        data = [json.loads(line) for line in fh]
     fails = []
     for item in data:
         think, json_response = split_thinking_text(item["output"]["choices"][0]["message"]["content"])
@@ -139,16 +141,16 @@ def summarize_results(output_path: str) -> List[Dict[str, Any]]:
 
 def evaluate_summarization(prompt: str, input_file: str, output_file: str, model: str, batch_size: int, slurm_config_path: str):
     # Load evaluation data
-    logging.info(f"Loading summarization data from: {input_file}")
+    logging.debug(f"Loading summarization data from: {input_file}")
     with open(input_file, "r") as fh:
         summarization_data = json.load(fh)
     logging.info(f"Loaded {len(summarization_data)} Q/A pairs from {input_file}")
 
     # Create prompt file for LLMFLUX
-    basename = os.path.basename(input_file).split('.')[0]
-    if basename.endswith("_summarization_results"): # This is for ease of use in the pipeline
-        basename = basename[:-len("_summarization_results")]
-    llmflux_prompt_file = os.path.join(os.path.dirname(input_file), f"{basename}_evaluation_prompts.jsonl")
+    basename = os.path.basename(output_file).split('.')[0]
+    if basename.endswith("_eval_results"): # This is for ease of use in the pipeline
+        basename = basename[:-len("_eval_results")]
+    llmflux_prompt_file = os.path.join(".llmflux/data/input", f"{basename}_eval_prompts.jsonl")
     prep_evaluation_data(summarization_data, prompt, llmflux_prompt_file)
 
     # Submit evaluation job
@@ -157,10 +159,10 @@ def evaluate_summarization(prompt: str, input_file: str, output_file: str, model
     model = slurm_config.model if model is None else model
     batch_size = slurm_config.batch_size if batch_size is None else batch_size
 
-    job_id = submit_llmflux_job(llmflux_prompt_file, output_file, model, batch_size, slurm_config, job_name="Evaluation")
+    #job_id = submit_llmflux_job(llmflux_prompt_file, output_file, model, batch_size, slurm_config, job_name="Evaluation")
     
     # Monitor evaluation job
-    monitor_llmflux_job(job_id, job_name="Evaluation")
+    #monitor_llmflux_job(job_id, output_file, job_name="Evaluation")
 
     # Summarize results
     summarize_results(output_file)
@@ -168,9 +170,10 @@ def evaluate_summarization(prompt: str, input_file: str, output_file: str, model
 if __name__ == "__main__":
     args = parse_command_line()
     if args.output is None:
-        if basename.endswith("_summarization_results"): # This is for ease of use in the pipeline
-            basename = os.path.basename(args.data).split('.')[0]
-        args.output = f"data/output/{basename}_evaluation_results.jsonl"
+        basename = os.path.basename(args.data).split('.')[0]
+        if basename.endswith("_sum_results"): # This is for ease of use in the pipeline
+            basename = basename[:-len("_sum_results")]
+        args.output = f"data/output/{basename}_eval_results.jsonl"
 
     file_log_level = logging.DEBUG if args.verbose else logging.INFO
     console_log_level = logging.DEBUG if args.verbose else logging.INFO

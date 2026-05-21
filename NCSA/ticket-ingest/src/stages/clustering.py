@@ -64,27 +64,47 @@ def parse_command_line() -> argparse.Namespace:
     
     return parser.parse_args()
 
+
+def write_clustering_prompts(clustering_data: list[dict], prompt: str, output_file: str):
+    with open(output_file, "w") as f:
+        for item in clustering_data:
+            f.write(json.dumps({
+                "prompt": prompt,
+                "input": item["input"]
+            }) + "\n")
+
 def cluster_topics(prompt: str, input_file: str, output_file: str, model: str, batch_size: int, slurm_config_path: str):
     # Load clustering data
-    logging.info(f"Loading clustering data from: {input_file}")
+    logging.debug(f"Loading data from: {input_file}")
     with open(input_file, "r") as fh:
         clustering_data = json.load(fh)
     logging.info(f"Loaded {len(clustering_data)} topics from {input_file}")
 
     # Create prompt file for LLMFLUX
-    basename = os.path.basename(input_file).split('.')[0]
-    if basename.endswith("_deduplicated_results"): # This is for ease of use in the pipeline
-        basename = basename[:-len("_deduplicated_results")]
-    llmflux_prompt_file = os.path.join(os.path.dirname(input_file), f"{basename}_clustering_prompts.jsonl")
+    basename = os.path.basename(output_file).split('.')[0]
+    if basename.endswith("_clstr_results"): # This is for ease of use in the pipeline
+        basename = basename[:-len("_clstr_results")]
+    llmflux_prompt_file = os.path.join(".llmflux/data/input", f"{basename}_clstr_prompts.jsonl")
+    write_clustering_prompts(clustering_data, prompt, llmflux_prompt_file)
+
+    # Submit clustering job
+    slurm_config = SlurmConfig.load_from_json(slurm_config_path)
+    # Override config values if provided on the command line
+    model = slurm_config.model if model is None else model
+    batch_size = slurm_config.batch_size if batch_size is None else batch_size
     
-    
+    job_id = submit_llmflux_job(llmflux_prompt_file, output_file, model, batch_size, slurm_config, job_name="Clustering")
+
+    # Monitor clustering job
+    monitor_llmflux_job(job_id, output_file, job_name="Clustering")
 
 if __name__ == "__main__":
     args = parse_command_line()
     if args.output is None:
-        if basename.endswith("_deduplicated_results"): # This is for ease of use in the pipeline
-            basename = os.path.basename(args.data).split('.')[0]
-        args.output = f"data/output/{basename}_clustering_results.jsonl"
+        basename = os.path.basename(args.data).split('.')[0]
+        if basename.endswith("_dedup_results"): # This is for ease of use in the pipeline
+            basename = basename[:-len("_dedup_results")]
+        args.output = f"data/output/{basename}_clstr_results.jsonl"
 
     file_log_level = logging.DEBUG if args.verbose else logging.INFO
     console_log_level = logging.DEBUG if args.verbose else logging.INFO
