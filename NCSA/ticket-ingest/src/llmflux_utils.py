@@ -24,15 +24,13 @@ class SlurmConfig(BaseModel):
         with open(filepath, "r") as fh:
             return cls.model_validate_json(fh.read())
 
-def submit_llmflux_job(input_file: str, output_file: str, model: str, batch_size: int, my_slurm_config: SlurmConfig, job_name: str = "LLMFLUX"):
+def submit_llmflux_job(input_file: str, output_file: str, my_slurm_config: SlurmConfig, job_name: str = "LLMFLUX"):
     """
     Wrapper function to submit a job with LLMFlux.
 
     Args:
         input_file: Path to the input file (JSONL file containing the prompts for the LLM).
         output_file: Path to the output file.
-        model: Model to use.
-        batch_size: Batch size to use.
         my_slurm_config: Slurm configuration to use.
         job_name: Name of the job.
 
@@ -75,8 +73,8 @@ def submit_llmflux_job(input_file: str, output_file: str, model: str, batch_size
     job_id = runner.run(
         input_path=input_file,
         output_path=output_file,
-        model=model,
-        batch_size=batch_size,
+        model=my_slurm_config.model,
+        batch_size=my_slurm_config.batch_size,
     )
 
     logging.info(f"{job_name} job {job_id} submitted")

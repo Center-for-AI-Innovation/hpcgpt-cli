@@ -10,7 +10,7 @@ from typing import Any, Dict, List
 from llmflux.slurm import SlurmRunner
 from llmflux.core.config import Config, EngineConfig
 
-from ..llmflux_utils import SlurmConfig, submit_llmflux_job, monitor_llmflux_job
+from src.llmflux_utils import SlurmConfig, submit_llmflux_job, monitor_llmflux_job
 
 
 # region Summarization Stage
@@ -73,13 +73,13 @@ def prep_ticket_data(df: pd.DataFrame, system_prompt: str, output_file: str) -> 
                     "max_tokens": 500
                 }
             }) + "\n")
-    logging.info(f"Wrote {_+1} prompts to {output_file}")
+    logging.info(f"Wrote {_+1} prompts to \"{output_file}\"")
 
-def summarize_tickets(prompt: str, input_file: str, output_file: str, model: str, batch_size: int, slurm_config_path: str):
+def summarize_tickets(prompt: str, input_file: str, output_file: str, model: str, slurm_config_path: str):
     # Load ticket data
     logging.debug(f"Loading ticket data from: {input_file}")
     df = pd.read_csv(input_file, dtype=str)
-    logging.info(f"Loaded {len(df)} tickets from {input_file}")
+    logging.info(f"Loaded {len(df)} tickets from \"{input_file}\"")
 
     # Create prompt file for LLMFLUX
     basename = os.path.basename(output_file).split('.')[0]
@@ -91,13 +91,15 @@ def summarize_tickets(prompt: str, input_file: str, output_file: str, model: str
     # Submit summarization job
     slurm_config = SlurmConfig.load_from_json(slurm_config_path)
     # Override config values if provided on the command line
-    model = slurm_config.model if model is None else model
-    batch_size = slurm_config.batch_size if batch_size is None else batch_size
+    if model is not None:
+        slurm_config.model = model
     
-    job_id = submit_llmflux_job(llmflux_prompt_file, output_file, model, batch_size, slurm_config, job_name="Summarization")
+    job_id = submit_llmflux_job(llmflux_prompt_file, output_file, slurm_config, job_name="Summarization")
 
     # Monitor summarization job
     monitor_llmflux_job(job_id, output_file, job_name="Summarization")
+    
+    logging.info(f"Saved Summarization results to \"{output_file}\"")
 # endregion Summarization Stage
 
 # region Evaluation Stage
@@ -112,6 +114,10 @@ def split_thinking_text(text: str) -> tuple[str, str]:
     non_thinking = THINK_BLOCK_RE.sub("", text).strip()
     thinking_text = "\n".join(part.strip() for part in thinking_parts if part.strip())
     return thinking_text, non_thinking
+
+def strip_thinking(text: str) -> str:
+    """Remove thinking blocks from text."""
+    return THINK_BLOCK_RE.sub("", text).strip()
 
 def prep_qa_pair(content: str) -> Dict[str, Any]:
     thinking_text, qa_text = split_thinking_text(content)
@@ -147,12 +153,12 @@ def prep_evaluation_data(data, prompt: str, output_file: str):
                 }
             }) + "\n")
 
-    logging.info(f"Wrote {len(data)} prompts to {output_file}")
+    logging.info(f"Wrote {len(data)} prompts to \"{output_file}\"")
     return len(data)
 
 def summarize_results(output_path: str) -> List[Dict[str, Any]]:
     with open(output_path, "r") as fh:
-        data = [json.loads(line) for line in fh]
+        data = json.load(fh)
     fails = []
     for item in data:
         think, json_response = split_thinking_text(item["output"]["choices"][0]["message"]["content"])
@@ -162,24 +168,29 @@ def summarize_results(output_path: str) -> List[Dict[str, Any]]:
             item_data["id"] = item["input"]["custom_id"]
             item_data["input"] = strip_thinking(item["input"]["body"]["messages"][1]["content"])
             if item_data["pass_fail"] == "FAIL":
-                logging.info(f"Failed response: {item['input']['custom_id']}")
+                logging.warning(f"PII detected in response: {item['input']['custom_id']}")
                 fails.append(item_data)
         except json.JSONDecodeError:
             logging.error(f"Failed to parse JSON: {json_response}")
             continue
 
-    with open("evaluation_failures.json", "w") as fh:
-        json.dump(fails, fh, indent=4)
+    if len(fails) > 0:
+        basename = os.path.basename(output_path).split('.')[0]
+        if basename.endswith("_eval_results"): # This is for ease of use in the pipeline
+            basename = basename[:-len("_eval_results")]
+        with open(f"logs/{basename}_evaluation_failures.json", "w") as fh:
+            fh.write(json.dumps(fails, indent=4))
+        logging.info(f"Saved evaluation failures to \"logs/{basename}_evaluation_failures.json\"")
     logging.info(f"{len(fails)}/{len(data)} responses failed ({len(fails)/len(data)*100:.2f}%) fail rate")
 
     return fails
 
-def evaluate_summarization(prompt: str, input_file: str, output_file: str, model: str, batch_size: int, slurm_config_path: str):
+def evaluate_summarization(prompt: str, input_file: str, output_file: str, model: str, slurm_config_path: str):
     # Load evaluation data
     logging.debug(f"Loading summarization data from: {input_file}")
     with open(input_file, "r") as fh:
         summarization_data = json.load(fh)
-    logging.info(f"Loaded {len(summarization_data)} Q/A pairs from {input_file}")
+    logging.info(f"Loaded {len(summarization_data)} Q/A pairs from \"{input_file}\"")
 
     # Create prompt file for LLMFLUX
     basename = os.path.basename(output_file).split('.')[0]
@@ -191,16 +202,18 @@ def evaluate_summarization(prompt: str, input_file: str, output_file: str, model
     # Submit evaluation job
     slurm_config = SlurmConfig.load_from_json(slurm_config_path)
     # Override config values if provided on the command line
-    model = slurm_config.model if model is None else model
-    batch_size = slurm_config.batch_size if batch_size is None else batch_size
+    if model is not None:
+        slurm_config.model = model
 
-    #job_id = submit_llmflux_job(llmflux_prompt_file, output_file, model, batch_size, slurm_config, job_name="Evaluation")
+    job_id = submit_llmflux_job(llmflux_prompt_file, output_file, slurm_config, job_name="Evaluation")
     
     # Monitor evaluation job
-    #monitor_llmflux_job(job_id, output_file, job_name="Evaluation")
+    monitor_llmflux_job(job_id, output_file, job_name="Evaluation")
 
     # Summarize results
     summarize_results(output_file)
+
+    logging.info(f"Saved Evaluation results to \"{output_file}\"")
 # endregion Evaluation Stage
 
 # region Deduplication Stage
@@ -236,7 +249,7 @@ def write_deduplication_prompts(prompt: str, pairs: list[dict], output_file: str
                 }
             }) + "\n")
 
-    logging.info(f"Wrote {len(pairs)} prompts to {output_file}")
+    logging.info(f"Wrote {len(pairs)} prompts to \"{output_file}\"")
     return len(pairs)
 
 def dedup_by_topic(pairs: list[dict], topic_results_path: str) -> list[dict]:
@@ -260,12 +273,12 @@ def dedup_by_topic(pairs: list[dict], topic_results_path: str) -> list[dict]:
 
     return list(seen_topics.values())
 
-def remove_duplicates(prompt: str, input_file: str, output_file: str, model: str, batch_size: int, slurm_config_path: str):
+def remove_duplicates(prompt: str, input_file: str, output_file: str, model: str, slurm_config_path: str):
     # Load evaluation data
     logging.debug(f"Loading summarization data from: {input_file}")
     with open(input_file, "r") as fh:
         summarization_data = json.load(fh)
-    logging.info(f"Loaded {len(summarization_data)} Q/A pairs from {input_file}")
+    logging.info(f"Loaded {len(summarization_data)} Q/A pairs from \"{input_file}\"")
 
     # Create prompt file for LLMFLUX
     basename = os.path.basename(output_file).split('.')[0]
@@ -278,10 +291,10 @@ def remove_duplicates(prompt: str, input_file: str, output_file: str, model: str
     # Submit deduplication job
     slurm_config = SlurmConfig.load_from_json(slurm_config_path)
     # Override config values if provided on the command line
-    model = slurm_config.model if model is None else model
-    batch_size = slurm_config.batch_size if batch_size is None else batch_size
+    if model is not None:
+        slurm_config.model = model
 
-    job_id = submit_llmflux_job(llmflux_prompt_file, output_file, model, batch_size, slurm_config, job_name="Deduplication")
+    job_id = submit_llmflux_job(llmflux_prompt_file, output_file, slurm_config, job_name="Deduplication")
     
     # Monitor deduplication job
     monitor_llmflux_job(job_id, output_file, job_name="Deduplication")
@@ -293,4 +306,6 @@ def remove_duplicates(prompt: str, input_file: str, output_file: str, model: str
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
     with open(output_file, "w") as f:
         json.dump(deduped, f, indent=2)
+
+    logging.info(f"Saved Deduplication results to \"{output_file}\"")
 # endregion Deduplication Stage

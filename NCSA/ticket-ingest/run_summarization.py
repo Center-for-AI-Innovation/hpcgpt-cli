@@ -28,7 +28,7 @@ def parse_command_line() -> argparse.Namespace:
     # Optional arguments
     optional_args = parser.add_argument_group('Optional arguments', '')
     optional_args.add_argument('-c', '--slurm-config',
-                    default="../config/slurm_config.json",
+                    default="config/slurm_config.json",
                     type=parse_filepath,
                     help="Path to the Slurm configuration file. Defaults to ../config/slurm_config.json")
     optional_args.add_argument('-o', '--output', 
@@ -38,7 +38,7 @@ def parse_command_line() -> argparse.Namespace:
                     type=str, 
                     help="Model to use. Use llmflux --show-models to list available models.")
     optional_args.add_argument('-p', '--prompt',
-                    default="../prompts/summarization.md",
+                    default="prompts/summarization.md",
                     type=parse_filepath, 
                     help='Path to the file to use as the system prompt for the LLM.')
     optional_args.add_argument("--log-file",

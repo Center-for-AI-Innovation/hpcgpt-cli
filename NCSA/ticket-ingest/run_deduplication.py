@@ -28,7 +28,7 @@ def parse_command_line() -> argparse.Namespace:
     # Optional arguments
     optional_args = parser.add_argument_group('Optional arguments', '')
     optional_args.add_argument('-c', '--slurm-config',
-                    default="../config/slurm_config.json",
+                    default="config/slurm_config.json",
                     type=parse_filepath,
                     help="Path to the Slurm configuration file. Defaults to ../config/slurm_config.json")
     optional_args.add_argument('-o', '--output', 
@@ -38,7 +38,7 @@ def parse_command_line() -> argparse.Namespace:
                     type=str, 
                     help="Model to use. Use llmflux --show-models to list available models.")
     optional_args.add_argument('-p', '--prompt',
-                    default="../prompts/deduplication.md",
+                    default="prompts/deduplication.md",
                     type=parse_filepath, 
                     help='Path to the file to use as the system prompt for the LLM.')
     optional_args.add_argument("--log-file",
@@ -63,15 +63,15 @@ if __name__ == "__main__":
         basename = os.path.basename(args.data).split('.')[0]
         if basename.endswith("_sum_results"): # This is for ease of use in the pipeline
             basename = basename[:-len("_sum_results")]
-        args.output = f"data/output/{basename}_dedup_results.jsonl"
+        args.output = f"results/{basename}_dedup_results.jsonl"
 
     file_log_level = logging.DEBUG if args.verbose else logging.INFO
     console_log_level = logging.DEBUG if args.verbose else logging.INFO
     logger = setup_logger(args.log_file, file_log_level, console_log_level, use_color=True, writemode='a')
 
     # Load system prompt
-    logger.info(f"Loading system prompt from: {args.prompt}")
+    logger.info(f"Loading system prompt from \"{args.prompt}\"")
     with open(args.prompt, "r") as f:
         system_prompt = f.read()
 
-    remove_duplicates(system_prompt, args.data, args.output, args.model, args.batch_size, args.slurm_config)
+    remove_duplicates(system_prompt, args.data, args.output, args.model, args.slurm_config)
