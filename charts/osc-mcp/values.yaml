@@ -1,0 +1,85 @@
+global:
+  imageRegistry: docker-registry.osc.edu
+  imagePullSecret:
+    name: osc-registry
+    # -- OSC registry password
+    # @default -- **required**
+    password:
+  oscServiceAccount: oscchat
+  database:
+    allowIngress: true
+  security:
+    allowInsecureImages: true
+  storageClass: local-ess
+  pvcLabels:
+    osc.edu/service-account: oscchat
+  pvcAnnotations:
+    osc.edu/fileset: PZS0645
+  fileset: PZS0645
+  # @ignored
+  webservicesDeploy:
+    create: false
+  # @ignored
+  debugGroups:
+    - sappstf
+  # @ignored
+  maintenanceGroups:
+    - sappstf
+  # @ignored
+  alert:
+    receiver: sciapps
+
+  ingress:
+    host: ""
+    hostAlias: ""
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+#    prometheus.io/probe_path: /health
+    prometheus.io/probe_scheme: 'https'
+    cert-manager.io/cluster-issuer: letsencrypt
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 16k
+    nginx.ingress.kubernetes.io/server-alias: '{{ .Values.global.ingress.hostAlias }}'
+    nginx.ingress.kubernetes.io/whitelist-source-range: '131.187.45.7,192.148.247.0/24,10.0.0.0/8'
+  host: '{{ required "Ingress host must be defined in the global settings" .Values.global.ingress.host }}'
+  hostAlias: '{{ required "Ingress host should be defined in the global settings" .Values.global.ingress.hostAlias }}'
+  tls:
+    - hosts:
+      - '{{ .Values.ingress.host }}'
+      - '{{ .Values.ingress.hostAlias }}'
+      secretName: osc-mcp
+
+replicaCount: 1
+
+osc_chat:
+  enabled: true
+  port: 8000
+  image:
+    repository: kubernetes/hpcgpt/oscchat-mcp
+    tag: v0.1.0
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 8000
+  chatEndpoint: ""
+  apiKey: ""
+  model: ""
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+
+#slurm:
+#  port: 8001
+#  enabled: false
+#  image:
+#    repository: kubernetes/hpcgpt/slurm-mcp
+#    tag: v0.1.0
+#    pullPolicy: Always
