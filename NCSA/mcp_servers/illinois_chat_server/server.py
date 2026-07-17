@@ -80,6 +80,16 @@ class ChatMCP(FastMCP):
         """
         return await self._send_request_to_illinois_chat("DeltaAI-Documentation", query)
 
+    async def query_hpcgpt_cuda_docs(self, query: str) -> str:
+        """
+        Query the CUDA documentation with the given query and return the output.
+        Args:
+            query: The query to pass to the CUDA documentation.
+        Returns:
+            The output of the CUDA documentation.
+        """
+        return await self._send_request_to_illinois_chat("hpcgpt-CUDA_DOCS", query)
+
     def verify_chat_connection(self, timeout: float = 30) -> None:
         """
         Verify the connection to the chat API. POST a minimal chat request to confirm the URL is reachable and the API key is accepted.
