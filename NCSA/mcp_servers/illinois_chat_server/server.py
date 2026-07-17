@@ -21,6 +21,7 @@ class ChatMCP(FastMCP):
 
         self.add_tool(self.query_delta_documentation)
         self.add_tool(self.query_delta_ai_documentation)
+        self.add_tool(self.query_hpcgpt_cuda_docs)
 
     async def _send_request_to_illinois_chat(self, course_name: str, query: str) -> str:
         request_data = {
