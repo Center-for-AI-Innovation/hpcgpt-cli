@@ -1,6 +1,0 @@
-dependencies:
-- name: osc-common
-  repository: https://osc.github.io/osc-helm-charts
-  version: 0.14.2
-digest: sha256:19a75c35b7adfe60fff8d7c4bdb90ae1e0c951f613c749999d1cc474764be15b
-generated: "2026-06-24T15:01:27.897737-07:00"
