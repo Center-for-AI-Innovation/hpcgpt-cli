@@ -37,6 +37,6 @@ class Config(BaseModel):
 def consolidate_config_and_args(config: Config, args: argparse.Namespace):
     # Merge config and args into a single args, with args taking precedence
     for key, value in config.__dict__.items():
-        if (key.replace("_", "-") not in args.__dict__ or args.__dict__[key] is None) and value is not None and value != '':
+        if (key not in args.__dict__ or args.__dict__[key] is None) and value is not None and value != '':
             args.__dict__[key] = value
     return args

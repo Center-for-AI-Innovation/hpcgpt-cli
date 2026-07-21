@@ -92,6 +92,7 @@ class ChatMCP(FastMCP):
                 self.osc_chat_url,
                 json=payload,
                 timeout=timeout,
+                headers={"x-osc-wait": "true"}
             )
         except requests.RequestException as exc:
             raise RuntimeError(
