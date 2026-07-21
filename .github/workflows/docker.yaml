@@ -1,3 +1,4 @@
+name: Build and Push MCP Images
 on:
   push:
     branches:
@@ -28,7 +29,9 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Get Image Name
         run: |
-          echo "IMAGE_NAME=${{ github.repository_owner }}/osc_chat_mcp" >> "$GITHUB_ENV"
+          OWNER='${{ github.repository_owner }}'
+          OWNER_LOWER="${OWNER,,}"
+          echo "IMAGE_NAME=${OWNER_LOWER}/osc_chat_mcp" >> "$GITHUB_ENV"
       - name: Get release tag
         run: |
           echo "RELEASE_TAG=`cat OSC/mcp_servers/osc_chat_server/VERSION.txt`" >> "$GITHUB_ENV"
