@@ -46,7 +46,11 @@ jobs:
             echo "exists=false" >> $GITHUB_OUTPUT
             echo "Tag $IMAGE_TAG does not exist. Proceeding..."
           fi
-
+      - name: Create dummy config.json
+        run: |
+          cat << 'EOF' > OSC/mcp_servers/osc_chat_server/config.json
+          {"osc_chat_url" : "", "osc_chat_api_key": "", "osc_chat_model": ""}
+          EOF
       - name: Build and push image
         id: push
         if: steps.check-tag.outputs.exists != 'true'
