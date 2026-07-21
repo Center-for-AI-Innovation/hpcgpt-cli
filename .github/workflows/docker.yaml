@@ -31,7 +31,7 @@ jobs:
           echo "IMAGE_NAME=${{ github.repository_owner }}/osc_chat_mcp" >> "$GITHUB_ENV"
       - name: Get release tag
         run: |
-          echo "RELEASE_TAG=`cat OSC/mcp_servers/osc_chat_server/VERSION.txt` >> "$GITHUB_ENV"
+          echo "RELEASE_TAG=`cat OSC/mcp_servers/osc_chat_server/VERSION.txt`" >> "$GITHUB_ENV"
       - name: Check if image tag exists
         id: check-tag
         run: |
