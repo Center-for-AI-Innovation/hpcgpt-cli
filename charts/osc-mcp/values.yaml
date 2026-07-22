@@ -54,6 +54,8 @@ ingress:
 
 replicaCount: 1
 
+enabled: true
+
 extraInitContainers: []
 
 osc_chat:
