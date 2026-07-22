@@ -22,6 +22,10 @@ spec:
       serviceAccountName: {{ include "osc-mcp.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- if .Values.extraInitContainers }}
+      initContainers:
+        {{- toYaml .Values.extraInitContainers | nindent 8 }}
+      {{- end }}
       containers:
         - name: osc-chat
           image: {{ include "osc-mcp.image" (dict "imageRoot" .Values.osc_chat.image "global" .Values.global "env" (include "osc.common.environment" .)) }}

@@ -54,12 +54,14 @@ ingress:
 
 replicaCount: 1
 
+extraInitContainers: []
+
 osc_chat:
   enabled: true
   port: 8000
   image:
     repository: kubernetes/hpcgpt/oscchat-mcp
-    tag: v0.1.0
+    tag: v0.1.1
     pullPolicy: Always
   service:
     type: ClusterIP
