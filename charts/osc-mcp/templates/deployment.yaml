@@ -39,7 +39,7 @@ spec:
             - name: PORT
               value: {{ .Values.osc_chat.port | quote }}
             - name: CHAT_URL
-              value: {{ .Values.osc_chat.chatEndpoint }}
+              value: {{ tpl .Values.osc_chat.chatEndpoint $ }}
             - name: API_KEY
               value: {{ .Values.osc_chat.apiKey | quote }}
             - name: MODEL_NAME
