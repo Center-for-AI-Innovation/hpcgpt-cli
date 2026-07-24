@@ -75,14 +75,10 @@ Generate image name with registry
     {{- $separator = "@" -}}
     {{- $termination = .imageRoot.digest | toString -}}
 {{- end -}}
-{{- $testSuffix := "" }}
-{{- if eq .env "test" }}
-  {{- $testSuffix = "-test" }}
-{{- end }}
 {{- if $registryName }}
-    {{- printf "%s/%s%s%s%s" $registryName $repositoryName $separator $termination $testSuffix -}}
+    {{- printf "%s/%s%s%s" $registryName $repositoryName $separator $termination -}}
 {{- else -}}
-    {{- printf "%s%s%s%s"  $repositoryName $separator $termination $testSuffix -}}
+    {{- printf "%s%s%s"  $repositoryName $separator $termination -}}
 {{- end -}}
 {{- end -}}
 
