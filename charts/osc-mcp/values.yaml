@@ -42,7 +42,7 @@ ingress:
     cert-manager.io/cluster-issuer: letsencrypt
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/proxy-buffer-size: 16k
-    nginx.ingress.kubernetes.io/server-alias: '{{ .Values.global.ingress.hostAlias }}'
+    nginx.ingress.kubernetes.io/server-alias: '{{ .Values.ingress.hostAlias }}'
     nginx.ingress.kubernetes.io/whitelist-source-range: '131.187.45.7,192.148.247.0/24,10.0.0.0/8'
   host: '{{ required "Ingress host must be defined in the global settings" .Values.global.ingress.host }}'
   hostAlias: '{{ required "Ingress host should be defined in the global settings" .Values.global.ingress.hostAlias }}'
