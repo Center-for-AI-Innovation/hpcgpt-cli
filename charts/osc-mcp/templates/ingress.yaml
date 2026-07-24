@@ -1,4 +1,3 @@
-{{- if .Values.enabled -}}
 {{- if .Values.ingress.enabled -}}
 {{- $fullName := include "osc-mcp.fullname" . -}}
 {{- $chatPort := .Values.osc_chat.port -}}
@@ -42,5 +41,4 @@ spec:
                 name: {{ $fullName }}-chat
                 port:
                   number: {{ $chatPort }}
-{{- end }}
 {{- end }}

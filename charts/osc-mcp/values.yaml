@@ -29,10 +29,6 @@ global:
   alert:
     receiver: sciapps
 
-  ingress:
-    host: ""
-    hostAlias: ""
-
 ingress:
   enabled: true
   className: "nginx"
@@ -44,17 +40,15 @@ ingress:
     nginx.ingress.kubernetes.io/proxy-buffer-size: 16k
     nginx.ingress.kubernetes.io/server-alias: '{{ .Values.ingress.hostAlias }}'
     nginx.ingress.kubernetes.io/whitelist-source-range: '131.187.45.7,192.148.247.0/24,10.0.0.0/8'
-  host: '{{ required "Ingress host must be defined in the global settings" .Values.global.ingress.host }}'
-  hostAlias: '{{ required "Ingress host should be defined in the global settings" .Values.global.ingress.hostAlias }}'
+  host:
+  hostAlias:
   tls:
     - hosts:
-      - '{{ .Values.ingress.host }}'
-      - '{{ .Values.ingress.hostAlias }}'
+      - '{{ required "Ingress host must be defined" .Values.ingress.host }}'
+      - '{{ required "Ingress host alias must be defined" .Values.ingress.hostAlias }}'
       secretName: osc-mcp
 
 replicaCount: 1
-
-enabled: true
 
 extraInitContainers: []
 
