@@ -26,8 +26,28 @@
         "apiKey": "{env:OSC_HOSTED_API_KEY}"
       },
       "models": {
-        "qwen3-coder-30b-4bit": {
-          "name": "Qwen 3 Coder 30B (4 bit)",
+        "qwen3-coder-30b": {
+          "name": "Qwen 3 Coder 30B",
+          "options": {
+            "stream": true
+          },
+          "limit": {
+            "context": 40960,
+            "output": 8192
+          }
+        },
+        "qwen3.6-fp8": {
+          "name": "Qwen 3.6 (FP 8)",
+          "options": {
+            "stream": true
+          },
+          "limit": {
+            "context": 40960,
+            "output": 8192
+          }
+        },
+        "qwen3-coder-next": {
+          "name": "Qwen 3 Coder Next",
           "options": {
             "stream": true
           },
