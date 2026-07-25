@@ -8,7 +8,7 @@
   },
   "mode": {
     "support": {
-      "model": "oschosted/qwen3-coder-30b-4bit",
+      "model": "oschosted/qwen3-coder-30b",
       "prompt": "{file:./prompts/support.txt}",
       "tools": {
         "write": true,
