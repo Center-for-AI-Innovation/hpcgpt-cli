@@ -32,6 +32,7 @@ Set `NCSA_LLM_URL` and any MCP server credentials before starting (see Environme
 ## Features
 
 - **Support agent** — Delta specific assistant with a custom system prompt (`client-deployment/prompts/support.txt`).
+- **Learning mode** — Teaching-oriented coding help that offers hints, scaffolding, guided implementation, and debugging without silently completing coursework (`client-deployment/prompts/learning.txt`).
 - **Slurm integration (MCP)** — `accounts`, `sinfo`, `squeue`, and `scontrol` via `slurm-mcp-server`.
 - **Docs Q&A (MCP)** — Illinois Chat tools `query_delta_documentation` and `query_delta_ai_documentation`.
 - **Support reporting (MCP)** — `send_support_report` via `report-server`; users can also run the `/report` command.
@@ -87,6 +88,7 @@ NCSA/
     opencode.jsonc
     prompts/
       support.txt
+      learning.txt
       report.txt
     README.md
   mcp_servers/
@@ -157,7 +159,7 @@ Illinois Chat and report server credentials are configured in each server's `con
 
 ## Usage Examples
 
-After starting OpenCode, interact with the support agent and ask it to use tools as needed.
+After starting OpenCode, use support mode for Delta guidance or learning mode when the goal is guided practice and student understanding.
 
 ### Slurm status
 
@@ -181,6 +183,14 @@ The assistant will call `search_tickets` (and optionally `get_ticket`) via `know
 
 Run the `/report` command in OpenCode. This uses `send_support_report` to create a Jira support issue with context.
 
+### Learn with guided scaffolding
+
+Switch to learning mode and ask:
+
+"Read `README.md`, explain the requirements, and scaffold the required files with TODOs. Do not implement the core algorithm yet."
+
+Learning mode uses project instructions as the source of truth, offers explicit help levels, approval-gates meaningful edits, and preserves Slurm safety rules.
+
 ## Configuration Reference
 
 The site config lives at `client-deployment/opencode.jsonc`. Key settings:
@@ -190,6 +200,7 @@ The site config lives at `client-deployment/opencode.jsonc`. Key settings:
 | `enabled_providers` | Restricts the model picker to NCSA Hosted only |
 | `agent` | Disables built-in `build` and `plan` agents |
 | `mode.support` | Defines the Delta support agent (model, prompt, tools) |
+| `mode.learning` | Defines teaching-oriented help with approval-gated edits and commands |
 | `provider.ncsahosted` | OpenAI-compatible provider using `{env:NCSA_LLM_URL}` |
 | `mcp` | Remote MCP server URLs; toggle individual servers with `enabled` |
 | `command.report` | Custom `/report` command bound to the support agent |
