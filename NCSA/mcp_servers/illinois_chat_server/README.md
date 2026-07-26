@@ -8,8 +8,8 @@ clients connect to a URL such as `http://127.0.0.1:8000/mcp`.
 
 | Tool | Purpose |
 |------|---------|
-| `query_delta_documentation` | Query general Delta / HPC documentation (`Delta-Documentation`). |
-| `query_delta_ai_documentation` | Query Delta AI documentation (`DeltaAI-Documentation`). |
+| `query_delta_documentation` | Retrieve relevant general Delta / HPC documentation (`Delta-Documentation`) for the active hpcGPT model. |
+| `query_delta_ai_documentation` | Retrieve relevant Delta AI documentation (`DeltaAI-Documentation`) for the active hpcGPT model. |
 
 Each tool takes a single string argument: `query`.
 
@@ -28,8 +28,8 @@ pip install fastmcp requests pydantic rich-argparse
 1. Copy the example config and edit values:
 
 ```bash
-cd NCSA/mcp_servers/pychat_server
-cp config.example config.json
+cd NCSA/mcp_servers/illinois_chat_server
+cp example.config.json config.json
 ```
 
 2. Set at least `illinois_chat_url`, `illinois_chat_api_key`, and `illinois_chat_model` in `config.json`. Optional fields use defaults from `src/config.py` if omitted (`host`, `port`, `log_file`, `illinois_chat_system_prompt`).
@@ -54,7 +54,7 @@ python server.py
 python server.py -c /path/to/config.json -v
 ```
 
-On startup the server calls `verify_chat_connection()` (a minimal `retrieval_only` request) so misconfigured URLs or keys fail fast.
+On startup the server calls `verify_chat_connection()` (a minimal `retrieval_only` request) so misconfigured URLs or keys fail fast. Tool calls also use retrieval-only mode: Illinois Chat returns relevant contexts and the active hpcGPT model synthesizes the answer, avoiding a second upstream model generation and its latency.
 
 - **MCP endpoint:** `http://<host>:<port>/mcp` (FastMCP default Streamable HTTP path is `/mcp` unless overridden by FastMCP settings).
 
@@ -62,15 +62,15 @@ Point your MCP client at that URL with Streamable HTTP transport.
 
 ## Behavior notes
 
-- Upstream requests use `temperature` **0.3**, `stream: false`, and `retrieval_only: false` for normal tool calls.
-- Responses are normalized from several possible JSON shapes (`message`, OpenAI-style `choices[0].message.content`, or `response`).
+- Upstream requests use `temperature` **0.3**, `stream: false`, and `retrieval_only: true` for normal tool calls.
+- Retrieval contexts are returned as JSON for the active hpcGPT model to synthesize. Legacy response shapes (`message`, OpenAI-style `choices[0].message.content`, or `response`) remain supported.
 
 ## Project layout
 
 ```
-pychat_server/
+illinois_chat_server/
 ├── server.py          # MCP server and tools
-├── config.example     # Template for config.json
+├── example.config.json # Template for config.json
 ├── src/
 │   ├── config.py      # Pydantic config loading
 │   └── logging.py     # File logging and FastMCP log routing

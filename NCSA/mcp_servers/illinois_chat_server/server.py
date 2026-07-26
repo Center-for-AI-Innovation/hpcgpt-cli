@@ -1,4 +1,6 @@
 import argparse
+import asyncio
+import json
 import logging
 import requests
 from fastmcp import FastMCP
@@ -6,6 +8,9 @@ from rich_argparse import RichHelpFormatter
 
 from src.config import Config, consolidate_config_and_args
 from src.logging import route_fastmcp_logs_to_root, setup_logging
+
+_REQUEST_TIMEOUT_SECONDS = 30
+
 
 class ChatMCP(FastMCP):
     """
@@ -33,9 +38,17 @@ class ChatMCP(FastMCP):
             "course_name": course_name,
             "stream": False,
             "temperature": 0.3,
-            "retrieval_only": False,
+            "retrieval_only": True,
         }
-        response = requests.post(self.illinois_chat_url, json=request_data)
+        try:
+            response = await asyncio.to_thread(
+                requests.post,
+                self.illinois_chat_url,
+                json=request_data,
+                timeout=_REQUEST_TIMEOUT_SECONDS,
+            )
+        except requests.RequestException as exc:
+            raise RuntimeError(f"Illinois Chat retrieval failed: {exc}") from exc
         if response.status_code != 200:
             raise RuntimeError(
                 f"Failed to send request to Illinois Chat API: "
@@ -43,6 +56,13 @@ class ChatMCP(FastMCP):
             )
         data = response.json()
         logging.info("Illinois Chat API Response: %s", data)
+        if "contexts" in data:
+            contexts = data["contexts"]
+            if not contexts:
+                return "No relevant Delta documentation context was found."
+            if isinstance(contexts, str):
+                return contexts
+            return json.dumps(contexts, ensure_ascii=True)
         if "message" in data:
             return data["message"]
         if (
