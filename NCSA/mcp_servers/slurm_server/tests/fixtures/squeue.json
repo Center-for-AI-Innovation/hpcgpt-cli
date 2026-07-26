@@ -1,0 +1,22 @@
+{
+  "jobs": [
+    {
+      "job_id": 41001,
+      "name": "gpu-train",
+      "user": "student1",
+      "account": "class",
+      "partition": "gpu",
+      "qos": "normal",
+      "state": {"current": ["RUNNING"], "reason": "None"},
+      "allocation_nodes": 1,
+      "nodes": "gpunode01",
+      "required": {"CPUs": 4},
+      "time": {"submission": 1780000000, "start": 1780000060, "elapsed": 120, "limit": {"set": true, "infinite": false, "number": 30}},
+      "tres": {"allocated": [{"type": "cpu", "name": "", "count": 4}, {"type": "gres", "name": "gpu", "count": 1}]},
+      "stdout": "/home/student1/project/slurm-41001.out",
+      "stderr": "/home/student1/project/slurm-41001.err",
+      "working_directory": "/home/student1/project"
+    }
+  ],
+  "errors": []
+}

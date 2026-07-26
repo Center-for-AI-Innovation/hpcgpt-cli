@@ -26,6 +26,9 @@ You have access to several powerful tools:
 - **sinfo**: View node availability and partition information
 - **squeue**: Monitor running and queued jobs
 - **scontrol**: Get detailed job and system information
+- **list_jobs**: Show active jobs plus recent accounting history as structured data
+- **get_job**: Get structured status and log paths for one job
+- **get_job_usage**: Get accounting and step usage for one completed or running job
 
 ### System Tools
 - **bash**: Execute system commands when needed for troubleshooting

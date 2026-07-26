@@ -20,6 +20,7 @@ whatis("URL: https://opencode.ai")
 
 prepend_path("PATH", pathJoin(root, "bin"))
 setenv("OPENCODE_CONFIG", pathJoin(root, "delta-opencode.jsonc")) -- Set this to your own config file
+setenv("OPENCODE_TUI_CONFIG", pathJoin(root, "tui.jsonc"))
 setenv("NCSA_LLM_URL", "https://example.endpoint/v1") -- Set this to your own hosted model URL
 
 if (mode() == "load") then

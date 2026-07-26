@@ -7,6 +7,7 @@ from fastmcp import FastMCP
 
 from src.config import Config, consolidate_config_and_args
 from src.logging import route_fastmcp_logs_to_root, setup_logging
+from src.tracker import SlurmTracker
 
 class SlurmMCP(FastMCP):
     """
@@ -15,10 +16,15 @@ class SlurmMCP(FastMCP):
     def __init__(self, name: str, args: argparse.Namespace):
         super().__init__(name)
 
+        self.tracker = SlurmTracker(identity_mode=args.identity_mode)
+
         self.add_tool(self.accounts)
         self.add_tool(self.sinfo)
         self.add_tool(self.squeue)
         self.add_tool(self.scontrol)
+        self.add_tool(self.list_jobs)
+        self.add_tool(self.get_job)
+        self.add_tool(self.get_job_usage)
 
     def _run_command(self, base_command: str, arg_string: str = "") -> str:
         """
@@ -96,6 +102,25 @@ class SlurmMCP(FastMCP):
             command_args = f"show job {job_id}" + (f" {command_args}" if command_args else "")
         return self._run_command("scontrol", command_args)
 
+    async def list_jobs(
+        self,
+        username: str | None = None,
+        states: list[str] | None = None,
+        since: str = "24h",
+        limit: int = 50,
+        include_completed: bool = True,
+    ) -> dict:
+        """List a user's active and recent Slurm jobs as structured data."""
+        return self.tracker.list_jobs(username, states, since, limit, include_completed)
+
+    async def get_job(self, job_id: str, username: str | None = None) -> dict:
+        """Get structured status and paths for one user-owned Slurm job."""
+        return self.tracker.get_job(job_id, username)
+
+    async def get_job_usage(self, job_id: str, username: str | None = None) -> dict:
+        """Get accounting and step usage for one user-owned Slurm job."""
+        return self.tracker.get_job_usage(job_id, username)
+
 def parse_command_line() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Slurm MCP Server",
@@ -117,6 +142,14 @@ def parse_command_line() -> argparse.Namespace:
         type=str,
         help="Option to set the file logging will output to.",
     )
+    parser.add_argument("--transport",
+        choices=("streamable-http", "stdio"),
+        help="MCP transport to use.",
+    )
+    parser.add_argument("--identity-mode",
+        choices=("explicit", "process"),
+        help="Resolve users from tool arguments or the MCP process account.",
+    )
     parser.add_argument("-v","--verbose",
         action="store_true",
         help="Flag to change the log level of the console from INFO to DEBUG",
@@ -137,7 +170,10 @@ def main(args: argparse.Namespace) -> None:
     route_fastmcp_logs_to_root(file_log_level)
 
     server = SlurmMCP("Slurm MCP Server", args)
-    server.run(transport="streamable-http", host=args.host, port=args.port, log_level=None, uvicorn_config={"log_config": None})
+    if args.transport == "stdio":
+        server.run(transport="stdio", log_level=None)
+    else:
+        server.run(transport="streamable-http", host=args.host, port=args.port, log_level=None, uvicorn_config={"log_config": None})
 
 if __name__ == "__main__":
     # Load config and args

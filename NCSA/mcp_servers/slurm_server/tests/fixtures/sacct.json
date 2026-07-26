@@ -1,0 +1,56 @@
+{
+  "jobs": [
+    {
+      "job_id": 41001,
+      "name": "gpu-train",
+      "user": "student1",
+      "partition": "gpu",
+      "state": {"current": ["RUNNING"], "reason": "None"},
+      "time": {"submission": 1780000000, "start": 1780000060, "elapsed": 120}
+    },
+    {
+      "job_id": 40999,
+      "name": "preprocess",
+      "user": "student1",
+      "account": "class",
+      "partition": "cpu",
+      "state": {"current": ["COMPLETED"], "reason": "None"},
+      "allocation_nodes": 1,
+      "required": {"CPUs": 2},
+      "time": {"submission": 1779990000, "start": 1779990060, "end": 1779990120, "elapsed": 60},
+      "exit_code": {"return_code": {"set": true, "infinite": false, "number": 0}, "signal": {"id": {"set": false, "infinite": false, "number": 0}}},
+      "stdout": "/home/student1/project/slurm-40999.out",
+      "stderr": "/home/student1/project/slurm-40999.err",
+      "working_directory": "/home/student1/project",
+      "steps": [
+        {
+          "step": {"id": "40999.batch", "name": "batch"},
+          "state": ["COMPLETED"],
+          "time": {"elapsed": 60},
+          "tasks": {"count": 1},
+          "tres": {
+            "allocated": [{"type": "cpu", "name": "", "count": 2}],
+            "requested": {"max": [{"type": "mem", "name": "", "count": 1024}], "average": []},
+            "consumed": {"total": []}
+          }
+        }
+      ]
+    },
+    {
+      "job_id": 40000,
+      "name": "other-user",
+      "user": "student2",
+      "state": {"current": ["FAILED"], "reason": "None"},
+      "time": {"submission": 1779980000, "elapsed": 1}
+    },
+    {
+      "job_id": 39998,
+      "array": {"task_id": {"set": true, "infinite": false, "number": 3}},
+      "name": "array-task",
+      "user": "student1",
+      "state": {"current": ["FAILED"], "reason": "NonZeroExitCode"},
+      "time": {"submission": 1779970000, "elapsed": 2}
+    }
+  ],
+  "errors": []
+}

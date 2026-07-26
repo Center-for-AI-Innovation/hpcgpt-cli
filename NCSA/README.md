@@ -23,6 +23,7 @@ See [`client-deployment/README.md`](client-deployment/README.md) for site-admin 
 ```bash
 curl -fsSL https://opencode.ai/install | bash
 export OPENCODE_CONFIG=/absolute/path/to/this/repo/NCSA/client-deployment/opencode.jsonc
+export OPENCODE_TUI_CONFIG=/absolute/path/to/this/repo/NCSA/client-deployment/tui.jsonc
 export NCSA_LLM_URL=https://your-endpoint/v1
 opencode
 ```
@@ -32,7 +33,7 @@ Set `NCSA_LLM_URL` and any MCP server credentials before starting (see Environme
 ## Features
 
 - **Support agent** — Delta specific assistant with a custom system prompt (`client-deployment/prompts/support.txt`).
-- **Slurm integration (MCP)** — `accounts`, `sinfo`, `squeue`, and `scontrol` via `slurm-mcp-server`.
+- **Slurm integration** — an opt-in, no-LLM sidebar tracker for immediate job status plus structured `list_jobs`, `get_job`, and `get_job_usage` MCP tools.
 - **Docs Q&A (MCP)** — Illinois Chat tools `query_delta_documentation` and `query_delta_ai_documentation`.
 - **Support reporting (MCP)** — `send_support_report` via `report-server`; users can also run the `/report` command.
 - **Ticket knowledge base (MCP)** — `search_tickets`, `get_ticket`, `list_clusters`, `get_cluster`, and `stats` via `knowledge-base-server` (`mcp_servers/ticket_server/`); indexes Q&A pairs produced by the `ticket-ingest/` pipeline.
@@ -73,6 +74,7 @@ graph TD
 - The **support** agent is the primary user-facing mode, configured with Delta-specific prompts and tool permissions.
 - In production on Delta, MCP servers run as remote HTTP endpoints on `dt-hpcgpt` (ports 8001–8004 for Slurm, Illinois Chat, report, and knowledge-base). For local development, run the Python servers from `mcp_servers/` and point the config URLs at `http://127.0.0.1:<port>/mcp`.
 - `slurm-mcp-server` shells out to local Slurm commands on the host where it runs.
+- The read-only tracker merges active `squeue --json` records with recent `sacct --json` history. The sidebar is off by default and polls only after the user runs `/jobs`.
 - `illinois-chat-server` calls the Illinois Chat API to answer questions from Delta and Delta AI documentation.
 - `report-server` creates Jira support tickets with session context.
 - `knowledge-base-server` (`mcp_servers/ticket_server/`) indexes clustered support-ticket Q&A pairs and serves bm25 search over them. Data comes from the `ticket-ingest/` pipeline.
@@ -85,6 +87,9 @@ NCSA/
     installer.sh
     module.lua
     opencode.jsonc
+    tui.jsonc
+    plugins/
+      slurm-sidebar/
     prompts/
       support.txt
       report.txt
@@ -106,7 +111,7 @@ Each MCP server has its own README with setup and configuration details.
 
 | Server | Tools | Purpose |
 |--------|-------|---------|
-| `slurm-mcp-server` | `accounts`, `sinfo`, `squeue`, `scontrol` | Query accounts, partitions, jobs, and job details |
+| `slurm-mcp-server` | `accounts`, `sinfo`, `squeue`, `scontrol`, `list_jobs`, `get_job`, `get_job_usage` | Query accounts, partitions, and structured active/recent job state |
 | `illinois-chat-server` | `query_delta_documentation`, `query_delta_ai_documentation` | Answer questions from Delta and Delta AI docs |
 | `report-server` | `send_support_report` | Create Jira support issues with conversation history and host/user context |
 | `knowledge-base-server` | `search_tickets`, `get_ticket`, `list_clusters`, `get_cluster`, `stats` | bm25 search over processed support-ticket Q&A pairs |
@@ -165,6 +170,8 @@ After starting OpenCode, interact with the support agent and ask it to use tools
 
 The assistant will call `sinfo` and `squeue` via `slurm-mcp-server`.
 
+For immediate status without an LLM call, run `/jobs` to toggle the sidebar tracker. It refreshes active jobs every 15 seconds and completed jobs from the current OpenCode session once per minute. Run `/jobs-refresh` for an immediate refresh.
+
 ### Delta/Delta AI docs Q&A
 
 "How do I submit a Slurm job on Delta?"
@@ -193,6 +200,7 @@ The site config lives at `client-deployment/opencode.jsonc`. Key settings:
 | `provider.ncsahosted` | OpenAI-compatible provider using `{env:NCSA_LLM_URL}` |
 | `mcp` | Remote MCP server URLs; toggle individual servers with `enabled` |
 | `command.report` | Custom `/report` command bound to the support agent |
+| `tui.jsonc` `plugin` | Loads the local `slurm-sidebar` TUI plugin |
 | `share` | Set to `"disabled"` on Delta |
 | `permission` | Default tool permissions (`edit` and `bash` require approval) |
 
