@@ -26,6 +26,7 @@ class ChatMCP(FastMCP):
 
         self.add_tool(self.query_delta_documentation)
         self.add_tool(self.query_delta_ai_documentation)
+        self.add_tool(self.query_hpcgpt_cuda_docs)
 
     async def _send_request_to_illinois_chat(self, course_name: str, query: str) -> str:
         request_data = {
@@ -99,6 +100,16 @@ class ChatMCP(FastMCP):
             The output of the delta-ai-docs command.
         """
         return await self._send_request_to_illinois_chat("DeltaAI-Documentation", query)
+
+    async def query_hpcgpt_cuda_docs(self, query: str) -> str:
+        """
+        Query the CUDA documentation with the given query and return the output.
+        Args:
+            query: The query to pass to the CUDA documentation.
+        Returns:
+            The output of the CUDA documentation.
+        """
+        return await self._send_request_to_illinois_chat("hpcgpt-CUDA_DOCS", query)
 
     def verify_chat_connection(self, timeout: float = 30) -> None:
         """
