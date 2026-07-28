@@ -23,7 +23,7 @@ client-deployment/
 | `module.lua` | Lmod template that sets `PATH`, `OPENCODE_CONFIG`, and `NCSA_LLM_URL` |
 | `opencode.jsonc` | Site config: provider, models, MCP server URLs, permissions, and prompt references |
 | `tui.jsonc` | Site TUI config loaded through `OPENCODE_TUI_CONFIG` |
-| `plugins/slurm-sidebar/` | Read-only sidebar that polls the user's local Slurm commands only when enabled |
+| `plugins/slurm-sidebar/` | Read-only sidebar that runs local Slurm commands only on user-requested refresh |
 | `prompts/` | Prompt files referenced by `opencode.jsonc` via `{file:./prompts/...}` |
 
 ## Target site layout
@@ -117,7 +117,7 @@ opencode
 
 Loading the module sets `OPENCODE_CONFIG`, `OPENCODE_TUI_CONFIG`, and `NCSA_LLM_URL` automatically. Users do not need a personal install or config export.
 
-The Slurm tracker is off by default. Run `/jobs` to start or stop sidebar polling. While enabled, active jobs refresh every 15 seconds and completed jobs from the current session refresh every 60 seconds.
+Run `/jobs` to enable the Slurm sidebar and load status once. Click `[Refresh]` or run `/jobs-refresh` for another update. The sidebar performs no background polling.
 
 ## Upgrading
 

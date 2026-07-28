@@ -3,8 +3,6 @@ import type { TuiPluginModule } from "@opencode-ai/plugin/tui"
 
 import { querySacct, querySqueue } from "./slurm.js"
 
-const ACTIVE_REFRESH_MS = 15_000
-const COMPLETED_REFRESH_MS = 60_000
 const MAX_VISIBLE_JOBS = 6
 
 function compactState(state: string) {
@@ -24,7 +22,7 @@ function truncate(value: string, width: number) {
 const plugin: TuiPluginModule = {
   id: "ncsa-slurm-sidebar",
   async tui(api) {
-    let panel: { toggle: () => void } | undefined
+    let panel: { toggle: () => void; refresh: () => void } | undefined
     let enableOnMount = false
     const sessionStarts = new Map<string, Date>()
 
@@ -45,6 +43,18 @@ const plugin: TuiPluginModule = {
             }
           },
         },
+        {
+          title: "Refresh Slurm jobs",
+          name: "ncsa.slurm.jobs.refresh",
+          desc: "Refresh Slurm jobs now",
+          category: "HPC",
+          namespace: "palette",
+          slashName: "jobs-refresh",
+          run: () => {
+            if (panel) panel.refresh()
+            else api.ui.toast({ title: "Slurm jobs", message: "Enable the sidebar with /jobs first." })
+          },
+        },
       ],
     })
     api.lifecycle.onDispose(unregister)
@@ -62,27 +72,19 @@ const plugin: TuiPluginModule = {
           const [loading, setLoading] = createSignal(false)
           const [error, setError] = createSignal<string>()
           const [updatedAt, setUpdatedAt] = createSignal<Date>()
-          let timer: ReturnType<typeof setTimeout> | undefined
           let controller: AbortController | undefined
           let refreshing = false
           let generation = 0
-          let lastCompletedRefresh = 0
 
           const stop = () => {
             generation += 1
-            if (timer) clearTimeout(timer)
-            timer = undefined
             controller?.abort()
             controller = undefined
             refreshing = false
+            setLoading(false)
           }
 
-          const schedule = () => {
-            if (timer) clearTimeout(timer)
-            if (enabled()) timer = setTimeout(() => void refresh(), ACTIVE_REFRESH_MS)
-          }
-
-          const refresh = async (forceCompleted = false) => {
+          const refresh = async () => {
             if (!enabled() || refreshing) return
             refreshing = true
             setLoading(true)
@@ -94,12 +96,9 @@ const plugin: TuiPluginModule = {
               if (request !== generation || !enabled()) return
               setActive(jobs)
 
-              if (forceCompleted || Date.now() - lastCompletedRefresh >= COMPLETED_REFRESH_MS) {
-                const history = await querySacct(sessionStartedAt, { signal: controller.signal })
-                if (request !== generation || !enabled()) return
-                setCompleted(history)
-                lastCompletedRefresh = Date.now()
-              }
+              const history = await querySacct(sessionStartedAt, { signal: controller.signal })
+              if (request !== generation || !enabled()) return
+              setCompleted(history)
 
               setError(undefined)
               setUpdatedAt(new Date())
@@ -112,7 +111,6 @@ const plugin: TuiPluginModule = {
                 refreshing = false
                 setLoading(false)
                 controller = undefined
-                schedule()
               }
             }
           }
@@ -121,7 +119,7 @@ const plugin: TuiPluginModule = {
             const next = !enabled()
             setEnabled(next)
             enableOnMount = next
-            if (next) void refresh(true)
+            if (next) void refresh()
             else {
               stop()
               setActive([])
@@ -131,9 +129,15 @@ const plugin: TuiPluginModule = {
             }
           }
 
-          panel = { toggle }
+          panel = {
+            toggle,
+            refresh: () => {
+              if (enabled()) void refresh()
+              else api.ui.toast({ title: "Slurm jobs", message: "Enable the sidebar with /jobs first." })
+            },
+          }
           onMount(() => {
-            if (enabled()) void refresh(true)
+            if (enabled()) void refresh()
           })
           onCleanup(() => {
             stop()
@@ -164,6 +168,9 @@ const plugin: TuiPluginModule = {
 
               <Show when={enabled()}>
                 <box flexDirection="column">
+                  <text fg={context.theme.current.info} onMouseUp={() => void refresh()}>
+                    {loading() ? "Refreshing..." : "[Refresh]"}
+                  </text>
                   <Show when={loading() && !updatedAt()}>
                     <text fg={context.theme.current.textMuted}>Loading jobs...</text>
                   </Show>
@@ -209,9 +216,7 @@ const plugin: TuiPluginModule = {
 
                   <Show when={updatedAt()}>
                     {(updated) => (
-                      <text fg={context.theme.current.textMuted}>
-                        {loading() ? "Refreshing" : `Updated ${updated().toLocaleTimeString()}`} | 15s
-                      </text>
+                      <text fg={context.theme.current.textMuted}>Updated {updated().toLocaleTimeString()}</text>
                     )}
                   </Show>
                 </box>

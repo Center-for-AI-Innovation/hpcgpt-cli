@@ -34,7 +34,7 @@ Set `NCSA_LLM_URL` and any MCP server credentials before starting (see Environme
 
 - **Support agent** — Delta specific assistant with a custom system prompt (`client-deployment/prompts/support.txt`).
 - **Slurm integration (MCP)** — `accounts`, `sinfo`, `squeue`, and `scontrol` via `slurm-mcp-server`.
-- **Slurm sidebar** — opt-in, no-LLM display of active and recently completed jobs; disabled by default.
+- **Slurm sidebar** — opt-in, manually refreshed, no-LLM display of active and recently completed jobs.
 - **Docs Q&A (MCP)** — Illinois Chat tools `query_delta_documentation` and `query_delta_ai_documentation`.
 - **Support reporting (MCP)** — `send_support_report` via `report-server`; users can also run the `/report` command.
 - **Ticket knowledge base (MCP)** — `search_tickets`, `get_ticket`, `list_clusters`, `get_cluster`, and `stats` via `knowledge-base-server` (`mcp_servers/ticket_server/`); indexes Q&A pairs produced by the `ticket-ingest/` pipeline.
@@ -75,7 +75,7 @@ graph TD
 - The **support** agent is the primary user-facing mode, configured with Delta-specific prompts and tool permissions.
 - In production on Delta, MCP servers run as remote HTTP endpoints on `dt-hpcgpt` (ports 8001–8004 for Slurm, Illinois Chat, report, and knowledge-base). For local development, run the Python servers from `mcp_servers/` and point the config URLs at `http://127.0.0.1:<port>/mcp`.
 - `slurm-mcp-server` shells out to local Slurm commands on the host where it runs.
-- The sidebar plugin runs local `squeue` and `sacct` commands only while enabled; it does not invoke the model or submit jobs.
+- The sidebar plugin runs local `squeue` and `sacct` commands only when the user requests a refresh; it does not invoke the model or submit jobs.
 - `illinois-chat-server` calls the Illinois Chat API to answer questions from Delta and Delta AI documentation.
 - `report-server` creates Jira support tickets with session context.
 - `knowledge-base-server` (`mcp_servers/ticket_server/`) indexes clustered support-ticket Q&A pairs and serves bm25 search over them. Data comes from the `ticket-ingest/` pipeline.
@@ -191,7 +191,7 @@ Run the `/report` command in OpenCode. This uses `send_support_report` to create
 
 ### Track Slurm jobs
 
-Run `/jobs` to enable the Slurm sidebar. Active jobs refresh every 15 seconds and completed jobs from the current session refresh every 60 seconds. Run `/jobs` again to disable the tracker and stop polling. The Active and Completed headings are collapsible.
+Run `/jobs` to enable the Slurm sidebar and load current status once. Click `[Refresh]` or run `/jobs-refresh` to update it. The sidebar performs no background polling, and the Active and Completed headings are collapsible.
 
 ## Configuration Reference
 
