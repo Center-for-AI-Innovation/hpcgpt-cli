@@ -1,0 +1,14 @@
+{
+  "name": "ncsa-slurm-sidebar",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./tui": "./index.tsx"
+  },
+  "engines": {
+    "opencode": ">=1.17.0"
+  },
+  "scripts": {
+    "test": "node --test slurm.test.js"
+  }
+}

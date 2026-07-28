@@ -9,6 +9,9 @@ client-deployment/
   installer.sh       # Site OpenCode installer
   module.lua         # Lmod/Environment Modules template
   opencode.jsonc     # Site config template (providers, MCP, prompts)
+  tui.jsonc          # TUI config that loads site interface plugins
+  plugins/
+    slurm-sidebar/   # Opt-in, no-LLM Slurm status display
   prompts/
     support.txt      # Support agent system prompt
     report.txt       # `/report` command template
@@ -19,6 +22,8 @@ client-deployment/
 | `installer.sh` | Fork of the [official OpenCode installer](https://opencode.ai/install) with `--install-dir` and `--no-modify-path` |
 | `module.lua` | Lmod template that sets `PATH`, `OPENCODE_CONFIG`, and `NCSA_LLM_URL` |
 | `opencode.jsonc` | Site config: provider, models, MCP server URLs, permissions, and prompt references |
+| `tui.jsonc` | Site TUI config loaded through `OPENCODE_TUI_CONFIG` |
+| `plugins/slurm-sidebar/` | Read-only sidebar that polls the user's local Slurm commands only when enabled |
 | `prompts/` | Prompt files referenced by `opencode.jsonc` via `{file:./prompts/...}` |
 
 ## Target site layout
@@ -29,6 +34,9 @@ Delta uses `/sw/external/` for system software. After deployment, the install ro
 /sw/external/opencode/
   bin/opencode
   opencode.json
+  tui.jsonc
+  plugins/
+    slurm-sidebar/
   prompts/
     support.txt
     report.txt
@@ -65,8 +73,11 @@ Copy the config and prompt files into the install root. Prompt paths in the conf
 
 ```bash
 mkdir -p /sw/external/opencode/prompts
+mkdir -p /sw/external/opencode/plugins
 
 cp opencode.jsonc /sw/external/opencode/opencode.json
+cp tui.jsonc /sw/external/opencode/tui.jsonc
+cp -R plugins/slurm-sidebar /sw/external/opencode/plugins/
 cp prompts/support.txt prompts/report.txt /sw/external/opencode/prompts/
 ```
 
@@ -92,6 +103,7 @@ Update the template for your site:
 | `root` | Software root (e.g. `/sw/external/opencode`) |
 | `version` | Module version string; should match the installed OpenCode release |
 | `OPENCODE_CONFIG` | Path to your site config (e.g. `/sw/external/opencode/delta-opencode.json`) |
+| `OPENCODE_TUI_CONFIG` | Path to the site TUI config (e.g. `/sw/external/opencode/tui.jsonc`) |
 | `NCSA_LLM_URL` | Base URL for your hosted OpenAI-compatible model endpoint |
 
 ## End user usage
@@ -103,7 +115,9 @@ module load hpc-gpt/1.15.13
 opencode
 ```
 
-Loading the module sets `OPENCODE_CONFIG` and `NCSA_LLM_URL` automatically. Users do not need a personal install or config export.
+Loading the module sets `OPENCODE_CONFIG`, `OPENCODE_TUI_CONFIG`, and `NCSA_LLM_URL` automatically. Users do not need a personal install or config export.
+
+The Slurm tracker is off by default. Run `/jobs` to start or stop sidebar polling. While enabled, active jobs refresh every 15 seconds and completed jobs from the current session refresh every 60 seconds.
 
 ## Upgrading
 
@@ -131,6 +145,7 @@ For development, users can install the OpenCode client in their home directory b
 
 ```bash
 export OPENCODE_CONFIG=/path/to/opencode.jsonc
+export OPENCODE_TUI_CONFIG=/path/to/tui.jsonc
 export NCSA_LLM_URL=https://your-endpoint/v1
 opencode
 ```
