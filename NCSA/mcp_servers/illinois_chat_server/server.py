@@ -59,7 +59,7 @@ class ChatMCP(FastMCP):
         if "contexts" in data:
             contexts = data["contexts"]
             if not contexts:
-                return "No relevant Delta documentation context was found."
+                return "No relevant documentation context was found."
             if isinstance(contexts, str):
                 return contexts
             return json.dumps(contexts, ensure_ascii=True)
