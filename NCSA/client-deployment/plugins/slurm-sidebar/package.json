@@ -7,8 +7,5 @@
   },
   "engines": {
     "opencode": ">=1.17.0"
-  },
-  "scripts": {
-    "test": "node --test slurm.test.js"
   }
 }
