@@ -32,6 +32,7 @@ Set `NCSA_LLM_URL` and any MCP server credentials before starting (see Environme
 ## Features
 
 - **Support agent** — Delta specific assistant with a custom system prompt (`client-deployment/prompts/support.txt`).
+- **Ask mode** — Read-only Delta guidance and troubleshooting assistant with a dedicated system prompt (`client-deployment/prompts/ask.txt`).
 - **Slurm integration (MCP)** — `accounts`, `sinfo`, `squeue`, and `scontrol` via `slurm-mcp-server`.
 - **Docs Q&A (MCP)** — Illinois Chat tools `query_delta_documentation` and `query_delta_ai_documentation`.
 - **Support reporting (MCP)** — `send_support_report` via `report-server`; users can also run the `/report` command.
@@ -45,8 +46,10 @@ Set `NCSA_LLM_URL` and any MCP server credentials before starting (see Environme
 graph TD
   U[User] -->|TUI| OC[OpenCode CLI]
 
-  OC --> A[support agent]
-  A --> P[NCSA Hosted Provider]
+  OC --> S[support mode]
+  OC --> A[ask mode]
+  S --> P[NCSA Hosted Provider]
+  A --> P
 
   subgraph MCP_Servers
     M1[slurm-mcp-server]
@@ -70,7 +73,7 @@ graph TD
 ### How things fit together
 
 - OpenCode reads `client-deployment/opencode.jsonc` (via `OPENCODE_CONFIG`) for providers, agents, and MCP servers.
-- The **support** agent is the primary user-facing mode, configured with Delta-specific prompts and tool permissions.
+- The **support** mode provides the full Delta support workflow, while the read-only **ask** mode focuses on explanation, troubleshooting, and guidance. Each mode has a Delta-specific prompt and tool configuration.
 - In production on Delta, MCP servers run as remote HTTP endpoints on `dt-hpcgpt` (ports 8001–8004 for Slurm, Illinois Chat, report, and knowledge-base). For local development, run the Python servers from `mcp_servers/` and point the config URLs at `http://127.0.0.1:<port>/mcp`.
 - `slurm-mcp-server` shells out to local Slurm commands on the host where it runs.
 - `illinois-chat-server` calls the Illinois Chat API to answer questions from Delta and Delta AI documentation.
@@ -87,6 +90,7 @@ NCSA/
     opencode.jsonc
     prompts/
       support.txt
+      ask.txt
       report.txt
     README.md
   mcp_servers/
@@ -157,7 +161,7 @@ Illinois Chat and report server credentials are configured in each server's `con
 
 ## Usage Examples
 
-After starting OpenCode, interact with the support agent and ask it to use tools as needed.
+After starting OpenCode, use the support mode for the full support workflow or select ask mode for read-only guidance and troubleshooting.
 
 ### Slurm status
 
@@ -190,6 +194,7 @@ The site config lives at `client-deployment/opencode.jsonc`. Key settings:
 | `enabled_providers` | Restricts the model picker to NCSA Hosted only |
 | `agent` | Disables built-in `build` and `plan` agents |
 | `mode.support` | Defines the Delta support agent (model, prompt, tools) |
+| `mode.ask` | Defines the read-only Delta ask agent (model, prompt, tools) |
 | `provider.ncsahosted` | OpenAI-compatible provider using `{env:NCSA_LLM_URL}` |
 | `mcp` | Remote MCP server URLs; toggle individual servers with `enabled` |
 | `command.report` | Custom `/report` command bound to the support agent |
