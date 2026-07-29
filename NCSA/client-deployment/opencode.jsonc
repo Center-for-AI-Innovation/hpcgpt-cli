@@ -8,11 +8,20 @@
   },
   "mode": {
     "support": {
-      "model": "ncsahosted/Qwen/Qwen3-VL-32B-Instruct",
+      "model": "ncsahosted/Qwen/Qwen3.6-27B",
       "prompt": "{file:./prompts/support.txt}",
       "tools": {
         "write": true,
         "edit": true,
+        "bash": true
+      }
+    },
+    "ask": {
+      "model": "ncsahosted/Qwen/Qwen3.6-27B",
+      "prompt": "{file:./prompts/ask.txt}",
+      "tools": {
+        "write": false,
+        "edit": false,
         "bash": true
       }
     }
@@ -25,8 +34,8 @@
         "baseURL": "{env:NCSA_LLM_URL}"
       },
       "models": {
-        "Qwen/Qwen3-VL-32B-Instruct": {
-          "name": "Qwen 3 32B Instruct",
+        "Qwen/Qwen3.6-27B": {
+          "name": "Qwen3.6-27B",
           "options": {
             "stream": true
           }
@@ -62,7 +71,7 @@
       "template": "{file:./prompts/report.txt}",
       "description": "Report an issue to the Delta support team",
       "agent": "support",
-      "model": "ncsahosted/Qwen/Qwen3-VL-32B-Instruct"
+      "model": "ncsahosted/Qwen/Qwen3.6-27B"
     }
   },
   // I'm disabling sharing as i don't think this is a feature we want on Delta
