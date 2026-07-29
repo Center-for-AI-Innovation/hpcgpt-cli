@@ -11,6 +11,7 @@ client-deployment/
   opencode.jsonc     # Site config template (providers, MCP, prompts)
   prompts/
     support.txt      # Support agent system prompt
+    ask.txt          # Read-only ask mode system prompt
     report.txt       # `/report` command template
 ```
 
@@ -31,6 +32,7 @@ Delta uses `/sw/external/` for system software. After deployment, the install ro
   opencode.json
   prompts/
     support.txt
+    ask.txt
     report.txt
 
 /sw/external/modulefiles/hpc-gpt/
@@ -67,7 +69,7 @@ Copy the config and prompt files into the install root. Prompt paths in the conf
 mkdir -p /sw/external/opencode/prompts
 
 cp opencode.jsonc /sw/external/opencode/opencode.json
-cp prompts/support.txt prompts/report.txt /sw/external/opencode/prompts/
+cp prompts/support.txt prompts/ask.txt prompts/report.txt /sw/external/opencode/prompts/
 ```
 
 Edit `/sw/external/opencode/opencode.json` for your site:
