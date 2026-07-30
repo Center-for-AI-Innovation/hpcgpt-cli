@@ -10,7 +10,6 @@ from src.config import Config, consolidate_config_and_args
 from src.logging import route_fastmcp_logs_to_root, setup_logging
 
 _REQUEST_TIMEOUT_SECONDS = 30
-_CUDA_DOCUMENTATION_COURSE = "hpcgpt-cuda-documentation"
 
 
 class ChatMCP(FastMCP):
@@ -114,7 +113,7 @@ class ChatMCP(FastMCP):
             Relevant context from the CUDA documentation collection.
         """
         return await self._send_request_to_illinois_chat(
-            _CUDA_DOCUMENTATION_COURSE,
+            "hpcgpt-CUDA_DOCS",
             query,
         )
 

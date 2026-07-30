@@ -10,7 +10,7 @@ clients connect to a URL such as `http://127.0.0.1:8000/mcp`.
 |------|---------|
 | `query_delta_documentation` | Retrieve relevant general Delta / HPC documentation (`Delta-Documentation`) for the active hpcGPT model. |
 | `query_delta_ai_documentation` | Retrieve relevant Delta AI documentation (`DeltaAI-Documentation`) for the active hpcGPT model. |
-| `query_hpcgpt_cuda_docs` | Retrieve relevant CUDA documentation (`hpcgpt-cuda-documentation`) for CUDA API and programming questions. |
+| `query_hpcgpt_cuda_docs` | Retrieve relevant CUDA documentation (`hpcgpt-CUDA_DOCS`) for CUDA API and programming questions. |
 
 Each tool takes a single string argument: `query`. Collection names are fixed
 server-side so clients cannot select arbitrary Illinois Chat courses.
