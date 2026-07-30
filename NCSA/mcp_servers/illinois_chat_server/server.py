@@ -10,6 +10,7 @@ from src.config import Config, consolidate_config_and_args
 from src.logging import route_fastmcp_logs_to_root, setup_logging
 
 _REQUEST_TIMEOUT_SECONDS = 30
+_CUDA_DOCUMENTATION_COURSE = "hpcgpt-cuda-documentation"
 
 
 class ChatMCP(FastMCP):
@@ -103,13 +104,19 @@ class ChatMCP(FastMCP):
 
     async def query_hpcgpt_cuda_docs(self, query: str) -> str:
         """
-        Query the CUDA documentation with the given query and return the output.
+        Retrieve CUDA documentation relevant to a focused technical question.
+
         Args:
-            query: The query to pass to the CUDA documentation.
+            query: A question about a CUDA API, runtime behavior, or programming
+                concept.
+
         Returns:
-            The output of the CUDA documentation.
+            Relevant context from the CUDA documentation collection.
         """
-        return await self._send_request_to_illinois_chat("hpcgpt-CUDA_DOCS", query)
+        return await self._send_request_to_illinois_chat(
+            _CUDA_DOCUMENTATION_COURSE,
+            query,
+        )
 
     def verify_chat_connection(self, timeout: float = 30) -> None:
         """
