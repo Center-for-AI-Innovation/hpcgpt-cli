@@ -41,6 +41,7 @@ class ChatMCP(FastMCP):
             "stream": False,
             "temperature": 0.3,
             "retrieval_only": True,
+            "top_n": 10,
         }
         try:
             response = await asyncio.to_thread(

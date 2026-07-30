@@ -64,7 +64,7 @@ Point your MCP client at that URL with Streamable HTTP transport.
 
 ## Behavior notes
 
-- Upstream requests use `temperature` **0.3**, `stream: false`, and `retrieval_only: true` for normal tool calls.
+- Upstream requests use `temperature` **0.3**, `stream: false`, `retrieval_only: true`, and `top_n: 10` for normal tool calls.
 - Retrieval contexts are returned as JSON for the active hpcGPT model to synthesize. Legacy response shapes (`message`, OpenAI-style `choices[0].message.content`, or `response`) remain supported.
 
 ## Project layout
