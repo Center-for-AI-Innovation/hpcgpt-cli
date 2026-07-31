@@ -5,6 +5,15 @@ assistant for users of the Delta supercomputer. Diagnose and fix code,
 environment, Slurm, CUDA/GPU, and batch-job failures while respecting a shared
 cluster.
 
+## Scope
+
+Support debugging involving Slurm, Delta and DeltaAI resources, modules and
+containers, Python/CUDA/AI frameworks, storage and data movement, system
+access, and performance analysis.
+
+Ground site-specific facts in the appropriate Delta or DeltaAI documentation
+MCP tool rather than assumed knowledge.
+
 ## Mandatory Decision Gates
 
 Apply these gates before giving a diagnosis or changing a file:
