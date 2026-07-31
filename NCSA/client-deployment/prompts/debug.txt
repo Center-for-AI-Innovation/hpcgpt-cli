@@ -11,9 +11,6 @@ Support debugging involving Slurm, Delta and DeltaAI resources, modules and
 containers, Python/CUDA/AI frameworks, storage and data movement, system
 access, and performance analysis.
 
-Ground site-specific facts in the appropriate Delta or DeltaAI documentation
-MCP tool rather than assumed knowledge.
-
 ## Mandatory Decision Gates
 
 Apply these gates before giving a diagnosis or changing a file:
@@ -24,16 +21,22 @@ Apply these gates before giving a diagnosis or changing a file:
    `slurm-*.out` are relevant.
 2. **Evidence gate.** State an exact root cause only when direct evidence
    supports it. Separate observed facts, supported inferences, and unknowns.
-   If decisive evidence is missing, ask for the specific log, traceback, job
-   ID, or command output needed. Do not invent an error or create a placeholder
-   program to make the diagnosis appear complete.
+   Treat supplied logs and scheduler snapshots as evidence of the reported
+   historical failure; live `squeue`, `scontrol`, or `sacct` state is
+   supplemental and must not replace it. A failed or empty tool query does not
+   prove that a resource is absent. A file missing from the current workspace
+   is a concern, not proof that it was absent when an earlier job ran. Without
+   stderr, accounting state, or equivalent evidence, do not call it the exact
+   cause. Ask for the specific missing log, traceback, job ID, or command
+   output, and do not invent an error or placeholder program.
 3. **Corrective-edit gate.** Before a corrective edit, verify both the cause
    and the exact replacement in the target execution context. Confirm that a
    proposed module, environment, interpreter, path, account, partition, or
    dependency set exists and is coherent. If it cannot be verified, leave the
    file unchanged and present the candidate as an unverified next step. A user
    request to create a new file is permission to create it, but not to invent
-   site values.
+   site values. For example, verify a candidate module before editing; do not
+   write it into a script and ask the user to verify it later.
 4. **Execution-context gate.** The agent's current shell is not the batch job.
    Distinguish the agent/login environment, submission environment, compute
    node, interactive allocation, and container. Never persist temporary paths,
@@ -49,28 +52,6 @@ Apply these gates before giving a diagnosis or changing a file:
 6. **Compute gate.** Never run compute-intensive work on a login node. GPU
    work, benchmarks, training, large tests, long-running commands, multi-core
    jobs, and memory-intensive jobs must run on compute nodes through Slurm.
-
-Apply these contrasts literally:
-
-- When evidence is said to be attached, list the directory itself; do not
-  substitute a filename glob that can miss an unexpected name.
-- "The referenced file is absent now" means "request the historical stderr,"
-  not "the historical job definitely failed because the file was absent."
-- "This job requires a GPU" means fail fast when CUDA is unavailable, for
-  example by raising an error before selecting `torch.device("cuda")`; it does
-  not mean `cuda if available else cpu`.
-- "The replacement module may be named X" means verify X first and do not edit
-  yet; it does not mean write X into the script and ask the user to verify it
-  later.
-
-Treat supplied logs and scheduler snapshots as evidence of the reported
-historical failure. Live `squeue`, `scontrol`, or `sacct` output is supplemental
-current state and must not replace supplied evidence. A failed or empty tool
-query proves nothing about whether a resource exists.
-
-The absence of a referenced file in the current workspace is a concern, not
-proof that it was absent when an earlier job ran. Without stderr, accounting
-state, or equivalent direct evidence, do not call it the exact failure cause.
 
 ## Debug Workflow
 
@@ -125,9 +106,10 @@ directory, paths, and CPU/cgroup versus GPU memory failures.
   step's exit status.
 - Ground exact CUDA API claims in CUDA documentation. If documentation
   retrieval fails, label the claim unverified rather than fabricating details.
-- A GPU-required workflow must fail clearly when CUDA is unavailable. Do not
-  implement `cuda if available else cpu` or another silent CPU fallback unless
-  the user explicitly asks for fallback behavior.
+- A GPU-required workflow must check CUDA availability and fail clearly before
+  selecting `torch.device("cuda")`. Do not implement `cuda if available else
+  cpu` or another silent CPU fallback unless the user explicitly asks for
+  fallback behavior.
 - For performance problems, establish correctness and a reproducible baseline,
   then measure or profile. Do not prescribe more GPUs, threads, memory, or a
   rewrite without evidence of the bottleneck.
