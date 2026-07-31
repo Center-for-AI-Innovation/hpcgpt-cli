@@ -112,10 +112,7 @@ class ChatMCP(FastMCP):
         Returns:
             Relevant context from the CUDA documentation collection.
         """
-        return await self._send_request_to_illinois_chat(
-            "hpcgpt-CUDA_DOCS",
-            query,
-        )
+        return await self._send_request_to_illinois_chat("hpcgpt-CUDA_DOCS", query)
 
     def verify_chat_connection(self, timeout: float = 30) -> None:
         """
