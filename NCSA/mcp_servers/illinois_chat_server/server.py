@@ -9,7 +9,6 @@ from rich_argparse import RichHelpFormatter
 from src.config import Config, consolidate_config_and_args
 from src.logging import route_fastmcp_logs_to_root, setup_logging
 
-_REQUEST_TIMEOUT_SECONDS = 30
 _CUDA_DOCUMENTATION_COURSE = "hpcgpt-cuda-documentation"
 
 
@@ -47,7 +46,7 @@ class ChatMCP(FastMCP):
                 requests.post,
                 self.illinois_chat_url,
                 json=request_data,
-                timeout=_REQUEST_TIMEOUT_SECONDS,
+                timeout=30,
             )
         except requests.RequestException as exc:
             raise RuntimeError(f"Illinois Chat retrieval failed: {exc}") from exc
