@@ -10,13 +10,14 @@ Tools are defined by the `courses` list in `config.json`. Each entry is verified
 
 Example tools (from `example.config.json`):
 
-| Tool | Course (`name`) | Purpose |
-|------|-----------------|-------------|
-| `query_Delta-Documentation` | `Delta-Documentation` | General Delta / HPC documentation. |
-| `query_DeltaAI-Documentation` | `DeltaAI-Documentation` | Delta AI documentation and resources. |
-| `query_hpcgpt-CUDA_DOCS` | `hpcgpt-CUDA_DOCS` | CUDA documentation. |
+| Tool | Purpose |
+|------|---------|
+| `query_delta_documentation` | Retrieve relevant general Delta / HPC documentation (`Delta-Documentation`) for the active hpcGPT model. |
+| `query_delta_ai_documentation` | Retrieve relevant Delta AI documentation (`DeltaAI-Documentation`) for the active hpcGPT model. |
+| `query_hpcgpt_cuda_docs` | Retrieve relevant CUDA documentation (`hpcgpt-cuda-documentation`) for CUDA API and programming questions. |
 
-To add a course, append an object to `courses` and restart the server—no code changes required:
+To add a course, append an object to `courses` and restart the server—no code changes required: Tools use static course names once the server
+starts so clients cannot select arbitrary Illinois Chat courses.
 
 ```json
 {
@@ -35,6 +36,7 @@ To add a course, append an object to `courses` and restart the server—no code 
 | `system_prompt` | no | System message for this course; defaults to top-level `illinois_chat_system_prompt`. |
 
 An empty `courses` list is rejected at startup. If every course fails verification, the server exits instead of running with no tools.
+
 
 ## Requirements
 
