@@ -16,6 +16,27 @@
         "bash": true
       }
     },
+    "debug": {
+      "model": "ncsahosted/Qwen/Qwen3.6-27B",
+      "prompt": "{file:./prompts/debug.txt}",
+      "tools": {
+        "read": true,
+        "list": true,
+        "glob": true,
+        "grep": true,
+        "write": true,
+        "edit": true,
+        "bash": true
+      },
+      "permission": {
+        "read": "allow",
+        "list": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "edit": "ask",
+        "bash": "ask"
+      }
+    },
     "learning": {
       "model": "ncsahosted/Qwen/Qwen3.6-27B",
       "prompt": "{file:./prompts/learning.txt}",

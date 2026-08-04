@@ -14,6 +14,7 @@ client-deployment/
     slurm-sidebar/   # Opt-in, no-LLM Slurm status display
   prompts/
     support.txt      # Support agent system prompt
+    debug.txt        # Debug mode system prompt
     learning.txt     # Learning mode system prompt
     report.txt       # `/report` command template
 ```
@@ -40,6 +41,7 @@ Delta uses `/sw/external/` for system software. After deployment, the install ro
     slurm-sidebar/
   prompts/
     support.txt
+    debug.txt
     learning.txt
     report.txt
 
@@ -80,7 +82,7 @@ mkdir -p /sw/external/opencode/plugins
 cp opencode.jsonc /sw/external/opencode/opencode.json
 cp tui.jsonc /sw/external/opencode/tui.jsonc
 cp -R plugins/slurm-sidebar /sw/external/opencode/plugins/
-cp prompts/support.txt prompts/learning.txt prompts/report.txt /sw/external/opencode/prompts/
+cp prompts/support.txt prompts/debug.txt prompts/learning.txt prompts/report.txt /sw/external/opencode/prompts/
 ```
 
 Edit `/sw/external/opencode/opencode.json` for your site:
@@ -88,7 +90,7 @@ Edit `/sw/external/opencode/opencode.json` for your site:
 - **Provider / models** — model IDs and display names under `provider`
 - **`NCSA_LLM_URL`** — set in the modulefile (see below); referenced in config as `{env:NCSA_LLM_URL}`
 - **MCP servers** — Enable/Disable the MCP servers that you have deployed. Slurm, Illinois Chat, report, and/or knowledge-base endpoints
-- **Modes** — `support` provides Delta guidance and information lookup; `learning` acts as a TA that explains, asks focused questions, and diagnoses student code without implementing the core assignment algorithm
+- **Modes** — `support` provides Delta guidance and information lookup; `debug` performs hands-on troubleshooting with Delta-safe guardrails; `learning` acts as a TA without implementing the core assignment algorithm
 
 ### 3. Install the modulefile
 
@@ -123,6 +125,10 @@ Loading the module sets `OPENCODE_CONFIG`, `OPENCODE_TUI_CONFIG`, and `NCSA_LLM_
 Run `/jobs` to enable the Slurm sidebar and load status once. Click `[Refresh]` or run `/jobs-refresh` for another update. The sidebar performs no background polling.
 
 Use learning mode when a student wants TA-style explanation, focused questions, mechanical bug diagnosis, or a non-solution source skeleton while retaining ownership of the core algorithm.
+
+Use support mode for questions such as partition choice, job submission guidance, or documentation lookup. Use debug mode when the assistant should inspect files, edit project code or scripts, and run lightweight validation commands.
+
+Debug mode is designed for shared-cluster etiquette: login nodes are for inspection and small checks; GPU tests, benchmarks, training, and long-running work should go through Slurm.
 
 ## Upgrading
 
