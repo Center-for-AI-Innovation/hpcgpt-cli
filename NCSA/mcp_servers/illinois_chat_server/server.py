@@ -62,7 +62,7 @@ class ChatMCP(FastMCP):
             return tool_fn
 
         tool_name = "query_" + course.name
-        tool_fn = make_tool(course.name)
+        tool_fn = make_tool(course)
         tool_fn.__name__ = tool_name
         tool_fn.__doc__ = f"""
         {course.description}
