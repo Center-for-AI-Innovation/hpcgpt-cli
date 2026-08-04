@@ -9,9 +9,13 @@ client-deployment/
   installer.sh       # Site OpenCode installer
   module.lua         # Lmod/Environment Modules template
   opencode.jsonc     # Site config template (providers, MCP, prompts)
+  tui.jsonc          # TUI config that loads site interface plugins
+  plugins/
+    slurm-sidebar/   # Opt-in, no-LLM Slurm status display
   prompts/
     support.txt      # Support agent system prompt
     debug.txt        # Debug mode system prompt
+    learning.txt     # Learning mode system prompt
     report.txt       # `/report` command template
 ```
 
@@ -20,6 +24,8 @@ client-deployment/
 | `installer.sh` | Fork of the [official OpenCode installer](https://opencode.ai/install) with `--install-dir` and `--no-modify-path` |
 | `module.lua` | Lmod template that sets `PATH`, `OPENCODE_CONFIG`, and `NCSA_LLM_URL` |
 | `opencode.jsonc` | Site config: provider, models, MCP server URLs, permissions, and prompt references |
+| `tui.jsonc` | Site TUI config loaded through `OPENCODE_TUI_CONFIG` |
+| `plugins/slurm-sidebar/` | Read-only sidebar that runs local Slurm commands only on user-requested refresh |
 | `prompts/` | Prompt files referenced by `opencode.jsonc` via `{file:./prompts/...}` |
 
 ## Target site layout
@@ -30,9 +36,13 @@ Delta uses `/sw/external/` for system software. After deployment, the install ro
 /sw/external/opencode/
   bin/opencode
   opencode.json
+  tui.jsonc
+  plugins/
+    slurm-sidebar/
   prompts/
     support.txt
     debug.txt
+    learning.txt
     report.txt
 
 /sw/external/modulefiles/hpc-gpt/
@@ -67,9 +77,12 @@ Copy the config and prompt files into the install root. Prompt paths in the conf
 
 ```bash
 mkdir -p /sw/external/opencode/prompts
+mkdir -p /sw/external/opencode/plugins
 
 cp opencode.jsonc /sw/external/opencode/opencode.json
-cp prompts/support.txt prompts/debug.txt prompts/report.txt /sw/external/opencode/prompts/
+cp tui.jsonc /sw/external/opencode/tui.jsonc
+cp -R plugins/slurm-sidebar /sw/external/opencode/plugins/
+cp prompts/support.txt prompts/debug.txt prompts/learning.txt prompts/report.txt /sw/external/opencode/prompts/
 ```
 
 Edit `/sw/external/opencode/opencode.json` for your site:
@@ -77,7 +90,7 @@ Edit `/sw/external/opencode/opencode.json` for your site:
 - **Provider / models** — model IDs and display names under `provider`
 - **`NCSA_LLM_URL`** — set in the modulefile (see below); referenced in config as `{env:NCSA_LLM_URL}`
 - **MCP servers** — Enable/Disable the MCP servers that you have deployed. Slurm, Illinois Chat, report, and/or knowledge-base endpoints
-- **Modes** — `support` is for Delta guidance and information lookup; `debug` is for code, environment, Slurm, and runtime troubleshooting with Delta-safe guardrails
+- **Modes** — `support` provides Delta guidance and information lookup; `debug` performs hands-on troubleshooting with Delta-safe guardrails; `learning` acts as a TA without implementing the core assignment algorithm
 
 ### 3. Install the modulefile
 
@@ -95,6 +108,7 @@ Update the template for your site:
 | `root` | Software root (e.g. `/sw/external/opencode`) |
 | `version` | Module version string; should match the installed OpenCode release |
 | `OPENCODE_CONFIG` | Path to your site config (e.g. `/sw/external/opencode/delta-opencode.json`) |
+| `OPENCODE_TUI_CONFIG` | Path to the site TUI config (e.g. `/sw/external/opencode/tui.jsonc`) |
 | `NCSA_LLM_URL` | Base URL for your hosted OpenAI-compatible model endpoint |
 
 ## End user usage
@@ -106,7 +120,11 @@ module load hpc-gpt/1.15.13
 opencode
 ```
 
-Loading the module sets `OPENCODE_CONFIG` and `NCSA_LLM_URL` automatically. Users do not need a personal install or config export.
+Loading the module sets `OPENCODE_CONFIG`, `OPENCODE_TUI_CONFIG`, and `NCSA_LLM_URL` automatically. Users do not need a personal install or config export.
+
+Run `/jobs` to enable the Slurm sidebar and load status once. Click `[Refresh]` or run `/jobs-refresh` for another update. The sidebar performs no background polling.
+
+Use learning mode when a student wants TA-style explanation, focused questions, mechanical bug diagnosis, or a non-solution source skeleton while retaining ownership of the core algorithm.
 
 Use support mode for questions such as partition choice, job submission guidance, or documentation lookup. Use debug mode when the assistant should inspect files, edit project code or scripts, and run lightweight validation commands.
 
@@ -138,6 +156,7 @@ For development, users can install the OpenCode client in their home directory b
 
 ```bash
 export OPENCODE_CONFIG=/path/to/opencode.jsonc
+export OPENCODE_TUI_CONFIG=/path/to/tui.jsonc
 export NCSA_LLM_URL=https://your-endpoint/v1
 opencode
 ```

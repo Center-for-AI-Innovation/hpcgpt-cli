@@ -5,7 +5,7 @@
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![Tech](https://img.shields.io/badge/AI-Opencode%20Agent%20%7C%20MCP%20Servers%20%7C%20Slurm%20%7C%20Illinois%20Chat%20%7C%20Atlassian-blueviolet)
 
-This directory contains the NCSA deployment of hpcGPT for Delta. It provides a site-managed OpenCode installation with Delta support and debug modes plus Model Context Protocol (MCP) servers for querying Slurm, Illinois Chat documentation, ticket knowledge base and reporting tickets.
+This directory contains the NCSA deployment of hpcGPT for Delta. It provides a site-managed OpenCode installation with Delta support, debug, and learning modes plus Model Context Protocol (MCP) servers for querying Slurm, Illinois Chat documentation, ticket knowledge base and reporting tickets.
 
 ## TL;DR
 
@@ -23,6 +23,7 @@ See [`client-deployment/README.md`](client-deployment/README.md) for site-admin 
 ```bash
 curl -fsSL https://opencode.ai/install | bash
 export OPENCODE_CONFIG=/absolute/path/to/this/repo/NCSA/client-deployment/opencode.jsonc
+export OPENCODE_TUI_CONFIG=/absolute/path/to/this/repo/NCSA/client-deployment/tui.jsonc
 export NCSA_LLM_URL=https://your-endpoint/v1
 opencode
 ```
@@ -33,8 +34,10 @@ Set `NCSA_LLM_URL` and any MCP server credentials before starting (see Environme
 
 - **Support mode** — Delta-specific assistant for documentation, Slurm status, support guidance, and escalation (`client-deployment/prompts/support.txt`).
 - **Debug mode** — Delta-aware coding and runtime debugger for project files, environments, Slurm jobs, CUDA/GPU issues, and small safe validation (`client-deployment/prompts/debug.txt`).
+- **Learning mode** — TA-style coding help that explains concepts, asks focused questions, diagnoses mechanical mistakes, and preserves student ownership of assignment algorithms (`client-deployment/prompts/learning.txt`).
 - **Slurm integration (MCP)** — `accounts`, `sinfo`, `squeue`, and `scontrol` via `slurm-mcp-server`.
-- **Docs Q&A (MCP)** — Illinois Chat tools `query_delta_documentation` and `query_delta_ai_documentation`.
+- **Slurm sidebar** — opt-in, manually refreshed, no-LLM display of active and recently completed jobs.
+- **Docs Q&A (MCP)** — Illinois Chat tools `query_delta_documentation`, `query_delta_ai_documentation`, and `query_hpcgpt_cuda_docs`.
 - **Support reporting (MCP)** — `send_support_report` via `report-server`; users can also run the `/report` command.
 - **Ticket knowledge base (MCP)** — `search_tickets`, `get_ticket`, `list_clusters`, `get_cluster`, and `stats` via `knowledge-base-server` (`mcp_servers/ticket_server/`); indexes Q&A pairs produced by the `ticket-ingest/` pipeline.
 - **Locked-down site config** — only the NCSA Hosted provider is enabled; built-in OpenCode agents (`build`, `plan`) are disabled.
@@ -48,8 +51,10 @@ graph TD
 
   OC --> A[support mode]
   OC --> D[debug mode]
+  OC --> L[learning mode]
   A --> P[NCSA Hosted Provider]
   D --> P
+  L --> P
 
   subgraph MCP_Servers
     M1[slurm-mcp-server]
@@ -75,8 +80,10 @@ graph TD
 - OpenCode reads `client-deployment/opencode.jsonc` (via `OPENCODE_CONFIG`) for providers, agents, and MCP servers.
 - The **support** mode is the primary user-facing support assistant, configured with Delta-specific prompts and tool permissions.
 - The **debug** mode is the hands-on troubleshooting assistant. It can inspect files, edit project files, and run lightweight commands, while keeping `bash` and `edit` approval-gated and directing real compute through Slurm.
+- The **learning** mode is teaching-first. It reads project instructions, asks focused questions, catches mechanical CUDA/C++ mistakes, uses CUDA documentation for exact API facts, and does not implement the core assignment algorithm.
 - In production on Delta, MCP servers run as remote HTTP endpoints on `dt-hpcgpt` (ports 8001–8004 for Slurm, Illinois Chat, report, and knowledge-base). For local development, run the Python servers from `mcp_servers/` and point the config URLs at `http://127.0.0.1:<port>/mcp`.
 - `slurm-mcp-server` shells out to local Slurm commands on the host where it runs.
+- The sidebar plugin runs local `squeue` and `sacct` commands only when the user requests a refresh; it does not invoke the model or submit jobs.
 - `illinois-chat-server` calls the Illinois Chat API to answer questions from Delta and Delta AI documentation.
 - `report-server` creates Jira support tickets with session context.
 - `knowledge-base-server` (`mcp_servers/ticket_server/`) indexes clustered support-ticket Q&A pairs and serves bm25 search over them. Data comes from the `ticket-ingest/` pipeline.
@@ -89,9 +96,13 @@ NCSA/
     installer.sh
     module.lua
     opencode.jsonc
+    tui.jsonc
+    plugins/
+      slurm-sidebar/
     prompts/
       support.txt
       debug.txt
+      learning.txt
       report.txt
     README.md
   mcp_servers/
@@ -129,6 +140,7 @@ Install OpenCode and point it at the NCSA config:
 ```bash
 curl -fsSL https://opencode.ai/install | bash
 export OPENCODE_CONFIG=/absolute/path/to/this/repo/NCSA/client-deployment/opencode.jsonc
+export OPENCODE_TUI_CONFIG=/absolute/path/to/this/repo/NCSA/client-deployment/tui.jsonc
 export NCSA_LLM_URL=https://your-endpoint/v1
 opencode
 ```
@@ -157,6 +169,7 @@ Use `example.env` as a reference and export values in your shell or `.env`.
 
 - `NCSA_LLM_URL` — Base URL for the NCSA Hosted models provider (set automatically by the Lmod module on Delta).
 - `OPENCODE_CONFIG` — Path to the site or dev config file (set automatically by the Lmod module on Delta).
+- `OPENCODE_TUI_CONFIG` — Path to the site TUI config that loads the Slurm sidebar.
 
 Illinois Chat and report server credentials are configured in each server's `config.json` (see `mcp_servers/illinois_chat_server/example.config.json`). The ticket knowledge base server points at a JSON file produced by `ticket-ingest/` via `data_dir` or `data_file` in `mcp_servers/ticket_server/example.config.json`.
 
@@ -202,6 +215,18 @@ Switch to debug mode and ask:
 
 The assistant should run only lightweight checks on the login node and use Slurm or an interactive allocation for GPU validation.
 
+### Track Slurm jobs
+
+Run `/jobs` to enable the Slurm sidebar and load current status once. Click `[Refresh]` or run `/jobs-refresh` to update it. The sidebar performs no background polling, and the Active and Completed headings are collapsible.
+
+### Learn with TA-style guidance
+
+Switch to learning mode and ask:
+
+"Read `README.md`, `AGENTS.md`, my CUDA source, and the compiler output. Explain the smallest blocker, ask one question that helps me reason about it, and do not implement the core algorithm."
+
+The assistant should identify mechanical mistakes directly, consult CUDA documentation when exact semantics matter, preserve instructor-provided files, and keep GPU execution on Slurm compute nodes.
+
 ## Configuration Reference
 
 The site config lives at `client-deployment/opencode.jsonc`. Key settings:
@@ -212,9 +237,11 @@ The site config lives at `client-deployment/opencode.jsonc`. Key settings:
 | `agent` | Disables built-in `build` and `plan` agents |
 | `mode.support` | Defines the Delta support assistant (model, prompt, tools) |
 | `mode.debug` | Defines the Delta debug assistant for code, environment, and Slurm troubleshooting |
+| `mode.learning` | Defines teaching-oriented assistance with approval-gated edits and commands |
 | `provider.ncsahosted` | OpenAI-compatible provider using `{env:NCSA_LLM_URL}` |
 | `mcp` | Remote MCP server URLs; toggle individual servers with `enabled` |
 | `command.report` | Custom `/report` command bound to the support agent |
+| `tui.jsonc` | Loads the opt-in Slurm sidebar plugin |
 | `share` | Set to `"disabled"` on Delta |
 | `permission` | Default tool permissions (`edit` and `bash` require approval) |
 

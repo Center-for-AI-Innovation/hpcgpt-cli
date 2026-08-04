@@ -8,7 +8,7 @@
   },
   "mode": {
     "support": {
-      "model": "ncsahosted/Qwen/Qwen3-VL-32B-Instruct",
+      "model": "ncsahosted/Qwen/Qwen3.6-27B",
       "prompt": "{file:./prompts/support.txt}",
       "tools": {
         "write": true,
@@ -17,7 +17,7 @@
       }
     },
     "debug": {
-      "model": "ncsahosted/Qwen/Qwen3-VL-32B-Instruct",
+      "model": "ncsahosted/Qwen/Qwen3.6-27B",
       "prompt": "{file:./prompts/debug.txt}",
       "tools": {
         "read": true,
@@ -36,6 +36,46 @@
         "edit": "ask",
         "bash": "ask"
       }
+    },
+    "learning": {
+      "model": "ncsahosted/Qwen/Qwen3.6-27B",
+      "prompt": "{file:./prompts/learning.txt}",
+      "tools": {
+        "read": true,
+        "list": true,
+        "glob": true,
+        "grep": true,
+        "write": true,
+        "edit": true,
+        "bash": true
+      },
+      "permission": {
+        "read": "allow",
+        "list": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "edit": "ask",
+        "bash": {
+          "*": "ask",
+          "pwd": "allow",
+          "ls *": "allow",
+          "find *": "allow",
+          "grep *": "allow",
+          "make -n*": "allow",
+          "bash -n *": "allow",
+          "git status*": "allow",
+          "git diff*": "allow",
+          "rm *": "deny",
+          "rm -r *": "deny",
+          "rm -rf *": "deny",
+          "sbatch *": "ask",
+          "srun *": "ask",
+          "salloc *": "ask",
+          "scancel *": "ask"
+        },
+        "task": "deny",
+        "external_directory": "ask"
+      }
     }
   },
   "provider": {
@@ -46,8 +86,8 @@
         "baseURL": "{env:NCSA_LLM_URL}"
       },
       "models": {
-        "Qwen/Qwen3-VL-32B-Instruct": {
-          "name": "Qwen 3 32B Instruct",
+        "Qwen/Qwen3.6-27B": {
+          "name": "Qwen 3.6 27B",
           "options": {
             "stream": true
           }
