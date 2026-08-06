@@ -22,7 +22,7 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "OSC Hosted",
       "options": {
-        "baseURL": "{env:OSC_LLM_URL}",
+        "baseURL": "https://${OSC_LLM_PROJECT}.ai-alpha.osc.edu/api",
         "apiKey": "{env:OSC_HOSTED_API_KEY}"
       },
       "models": {
