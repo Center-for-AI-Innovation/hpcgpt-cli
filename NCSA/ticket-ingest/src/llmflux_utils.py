@@ -75,6 +75,7 @@ def submit_llmflux_job(input_file: str, output_file: str, my_slurm_config: Slurm
         output_path=output_file,
         model=my_slurm_config.model,
         batch_size=my_slurm_config.batch_size,
+        vllm_engine_args={"tensor_parallel_size": my_slurm_config.gpus_per_node},
     )
 
     logging.info(f"{job_name} job {job_id} submitted")

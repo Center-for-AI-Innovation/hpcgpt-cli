@@ -4,7 +4,7 @@ import logging
 import argparse
 
 from src.log_utils import setup_logger
-from src.stages import summarize_tickets, evaluate_summarization#, remove_duplicates, cluster_topics
+from src.stages import summarize_tickets, evaluate_summarization, remove_duplicates
 
 def parse_command_line() -> argparse.Namespace:
     from rich_argparse import RichHelpFormatter
@@ -69,24 +69,24 @@ def main(args: argparse.Namespace):
         system_prompt = f.read()
     evaluate_summarization(system_prompt, f".llmflux/data/output/{label}_sum_results.jsonl", f".llmflux/data/output/{label}_eval_results.jsonl", args.model, args.slurm_config)
 
-    shutil.copy(f".llmflux/data/output/{label}_eval_results.jsonl", args.output)
-    logging.info("Exiting early for debugging")
-    exit(0)
+    # Remove duplicates - DISABLED by default for now (2025-08-12): topic-classification
+    # prompt over-abstracts and collapses unrelated tickets (10 -> 2 in testing).
+    # Needs prompt tuning/validation before production use. Code kept for future use.
+    RUN_DEDUP = True
+    if RUN_DEDUP:
+        logging.info(f"### Starting Pipeline Stage : Removing duplicates")
+        with open("prompts/deduplication.md", "r") as f:
+            system_prompt = f.read()
+        remove_duplicates(system_prompt, f".llmflux/data/output/{label}_sum_results.jsonl", f".llmflux/data/output/{label}_dedup_results.jsonl", args.model, args.slurm_config)
+        final_source = f".llmflux/data/output/{label}_dedup_results.jsonl"
+    else:
+        logging.info(f"### Skipping deduplication stage (disabled - see comment in code)")
+        final_source = f".llmflux/data/output/{label}_eval_results.jsonl"
 
-    # Remove duplicates
-    logging.info(f"### Starting Pipeline Stage : Removing duplicates")
-    with open("prompts/deduplication.md", "r") as f:
-        system_prompt = f.read()
-    remove_duplicates(system_prompt, f".llmflux/data/output/{label}_eval_results.jsonl", f".llmflux/data/output/{label}_dedup_results.jsonl", args.model, args.slurm_config)
-
-    # Cluster topics
-    # logging.info(f"### Starting Pipeline Stage : Clustering topics")
-    # with open("prompts/clustering.md", "r") as f:
-    #     system_prompt = f.read()
-    # cluster_topics(system_prompt, f".llmflux/data/output/{label}_dedup_results.jsonl", f".llmflux/data/output/{label}_clstr_results.jsonl", args.model, args.slurm_config)
+    # Clustering not yet implemented (cluster_topics function does not exist) - skipped
 
     # Copy results to final output file
-    shutil.copy(f".llmflux/data/output/{label}_clstr_results.jsonl", args.output)
+    shutil.copy(final_source, args.output)
 
     logging.info(f"### Pipeline completed successfully")
     logging.info(f"### Results saved to: {args.output}")

@@ -11,6 +11,18 @@ from llmflux.slurm import SlurmRunner
 from llmflux.core.config import Config, EngineConfig
 
 from src.llmflux_utils import SlurmConfig, submit_llmflux_job, monitor_llmflux_job
+def _load_llmflux_output(filepath):
+    """Load an llmflux output file, unwrapping the {"results": [...]} envelope
+    introduced in llmflux 1.0.0. Falls back to the raw data if already a flat list."""
+    with open(filepath) as f:
+        data = json.load(f)
+    if isinstance(data, dict) and "results" in data:
+        return data["results"]
+    return data
+
+
+
+
 
 
 # region Summarization Stage
@@ -157,8 +169,7 @@ def prep_evaluation_data(data, prompt: str, output_file: str):
     return len(data)
 
 def summarize_results(output_path: str) -> List[Dict[str, Any]]:
-    with open(output_path, "r") as fh:
-        data = json.load(fh)
+    data = _load_llmflux_output(output_path)
     fails = []
     for item in data:
         think, json_response = split_thinking_text(item["output"]["choices"][0]["message"]["content"])
@@ -188,8 +199,7 @@ def summarize_results(output_path: str) -> List[Dict[str, Any]]:
 def evaluate_summarization(prompt: str, input_file: str, output_file: str, model: str, slurm_config_path: str):
     # Load evaluation data
     logging.debug(f"Loading summarization data from: {input_file}")
-    with open(input_file, "r") as fh:
-        summarization_data = json.load(fh)
+    summarization_data = _load_llmflux_output(input_file)
     logging.info(f"Loaded {len(summarization_data)} Q/A pairs from \"{input_file}\"")
 
     # Create prompt file for LLMFLUX
@@ -219,16 +229,24 @@ def evaluate_summarization(prompt: str, input_file: str, output_file: str, model
 # region Deduplication Stage
 def extract_qa_pairs(data: list[dict]) -> list[dict]:
     pairs = []
+    skipped = 0
     for item in data:
         try:
             content = item["output"]["choices"][0]["message"]["content"]
+            if not content:
+                skipped += 1
+                logging.warning(f"Empty/null summarization content for {item.get('input', {}).get('custom_id', 'unknown')}, skipping")
+                continue
             content = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL).strip()
             pairs.append({
                 "custom_id": item["input"]["custom_id"],
                 "content": content
             })
         except (KeyError, IndexError):
+            skipped += 1
             continue
+    if skipped:
+        logging.info(f"Skipped {skipped} entries with missing/null content during dedup extraction")
     return pairs
 
 
@@ -245,7 +263,7 @@ def write_deduplication_prompts(prompt: str, pairs: list[dict], output_file: str
                         {"role": "user", "content": pair["content"]}
                     ],
                     "temperature": 0.0,
-                    "max_tokens": 20
+                    "max_tokens": 600
                 }
             }) + "\n")
 
@@ -253,13 +271,16 @@ def write_deduplication_prompts(prompt: str, pairs: list[dict], output_file: str
     return len(pairs)
 
 def dedup_by_topic(pairs: list[dict], topic_results_path: str) -> list[dict]:
-    with open(topic_results_path) as f:
-        topic_results = json.load(f)
+    topic_results = _load_llmflux_output(topic_results_path)
 
     topic_map = {}
     for item in topic_results:
         try:
-            topic = item["output"]["choices"][0]["message"]["content"].strip()
+            raw_content = item["output"]["choices"][0]["message"]["content"]
+            if not raw_content:
+                logging.warning(f"Empty/null dedup topic content for {item['input']['custom_id']}, skipping topic-dedup for this item")
+                continue
+            topic = raw_content.strip()
             topic = re.sub(r"<think>.*?</think>", "", topic, flags=re.DOTALL).strip()
             topic_map[item["input"]["custom_id"]] = topic
         except (KeyError, IndexError):
@@ -276,8 +297,7 @@ def dedup_by_topic(pairs: list[dict], topic_results_path: str) -> list[dict]:
 def remove_duplicates(prompt: str, input_file: str, output_file: str, model: str, slurm_config_path: str):
     # Load evaluation data
     logging.debug(f"Loading summarization data from: {input_file}")
-    with open(input_file, "r") as fh:
-        summarization_data = json.load(fh)
+    summarization_data = _load_llmflux_output(input_file)
     logging.info(f"Loaded {len(summarization_data)} Q/A pairs from \"{input_file}\"")
 
     # Create prompt file for LLMFLUX
@@ -298,6 +318,15 @@ def remove_duplicates(prompt: str, input_file: str, output_file: str, model: str
     
     # Monitor deduplication job
     monitor_llmflux_job(job_id, output_file, job_name="Deduplication")
+
+    # Preserve raw topic-classification output for auditing before it gets overwritten
+    raw_topics_path = output_file.replace(".jsonl", "_raw_topics.jsonl")
+    try:
+        import shutil as _shutil
+        _shutil.copy(output_file, raw_topics_path)
+        logging.info(f"Saved raw topic classifications to \"{raw_topics_path}\" for auditing")
+    except Exception as e:
+        logging.warning(f"Could not save raw topic classifications: {e}")
 
     # Deduplicate by topic
     logging.info(f"Deduplicating by topic")
