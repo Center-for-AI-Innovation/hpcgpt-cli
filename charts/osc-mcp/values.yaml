@@ -63,7 +63,7 @@ osc_chat:
   port: 8000
   image:
     repository: kubernetes/hpcgpt/oscchat-mcp
-    tag: v0.1.1
+    tag: v0.1.2
     pullPolicy: Always
   service:
     type: ClusterIP
