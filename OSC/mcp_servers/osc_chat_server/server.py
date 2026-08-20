@@ -2,7 +2,9 @@ import argparse
 import logging
 import requests
 from fastmcp import FastMCP
+from fastmcp.server.dependencies import get_http_request
 from rich_argparse import RichHelpFormatter
+from starlette.requests import Request
 
 from src.config import Config, consolidate_config_and_args
 from src.logging import route_fastmcp_logs_to_root, setup_logging
@@ -21,7 +23,15 @@ class ChatMCP(FastMCP):
 
         self.add_tool(self.query_osc_documentation)
 
+    async def _get_accounting_info(self) -> dict:
+        request: Request = get_http_request()
+
+        group = request.headers.get('x-osc-group')
+        user = request.headers.get('x-osc-user')
+        return {'group': group, 'user': user}
+
     async def _send_request_to_osc_chat(self, course_name: str, query: str) -> str:
+        accounting = await self._get_accounting_info()
         request_data = {
             "model": self.osc_chat_model,
             "messages": [
@@ -31,6 +41,8 @@ class ChatMCP(FastMCP):
             "api_key": self.osc_chat_api_key,
             "course_name": course_name,
             "stream": False,
+            "group": accounting['group'],
+            "username": accounting['user'],
             "temperature": 0.3,
             "retrieval_only": False,
         }

@@ -1,5 +1,8 @@
-REL=v0.1.0
+REL := $(shell cat VERSION.txt)
 build:
-	buildah build -t docker-registry.osc.edu/kubernetes/hpcgpt/oscchat-mcp:${REL} .
+	podman build \
+		--platform linux/amd64 \
+		-t docker-registry.osc.edu/kubernetes/hpcgpt/oscchat-mcp:${REL} \
+		.
 push:
-	docker push docker-registry.osc.edu/kubernetes/hpcgpt/oscchat-mcp:${REL}
+	podman push docker-registry.osc.edu/kubernetes/hpcgpt/oscchat-mcp:${REL}
