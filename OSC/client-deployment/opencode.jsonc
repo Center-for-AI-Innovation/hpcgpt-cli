@@ -73,6 +73,10 @@
     "osc-chat-server": {
       "type": "remote",
       "url": "{env:OSC_CHAT_MCP}",
+      "headers": {
+        "x-osc-user": "{env:USER}",
+        "x-osc-group": "{env:OSC_LLM_PROJECT}",
+      },
       "enabled": true
     }
   },
