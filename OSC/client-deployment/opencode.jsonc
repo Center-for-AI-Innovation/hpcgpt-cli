@@ -46,6 +46,36 @@
             "output": 8192
           }
         },
+        "qwen3.8-27b-fp8": {
+          "name": "Qwen 3.8 27B (FP 8)",
+          "options": {
+            "stream": true
+          },
+          "limit": {
+            "context": 40960,
+            "output": 8192
+          }
+        },
+        "gpt-oss-120b": {
+          "name": "GPT OSS 120B",
+          "options": {
+            "stream": true
+          },
+          "limit": {
+            "context": 40960,
+            "output": 8192
+          }
+        },
+        "qwen35-122b-fp8": {
+          "name": "Qwen 3.5 122B (FP8)",
+          "options": {
+            "stream": true
+          },
+          "limit": {
+            "context": 40960,
+            "output": 8192
+          }
+        },
         "qwen3-coder-next": {
           "name": "Qwen 3 Coder Next",
           "options": {
