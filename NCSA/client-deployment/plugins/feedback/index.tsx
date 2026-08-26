@@ -191,11 +191,9 @@ const plugin: TuiPluginModule = {
           return (
             <box flexDirection="column" paddingTop={1}>
               <text fg={context.theme.current.text}>
-                <b>If you have issue</b>
+                <b>Having an issue?</b>
               </text>
-              <text fg={context.theme.current.info} onMouseUp={() => openFeedback(api, context.session_id)}>
-                /feedback
-              </text>
+              <text fg={context.theme.current.info}>/feedback</text>
             </box>
           )
         },
