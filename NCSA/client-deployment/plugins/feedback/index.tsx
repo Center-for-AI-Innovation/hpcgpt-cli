@@ -193,7 +193,7 @@ const plugin: TuiPluginModule = {
               <text fg={context.theme.current.text}>
                 <b>Having an issue?</b>
               </text>
-              <text fg={context.theme.current.text}>/feedback</text>
+              <text fg={context.theme.current.textMuted}>/feedback</text>
             </box>
           )
         },
