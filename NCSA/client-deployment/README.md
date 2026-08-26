@@ -12,6 +12,7 @@ client-deployment/
   tui.jsonc          # TUI config that loads site interface plugins
   plugins/
     slurm-sidebar/   # Opt-in, no-LLM Slurm status display
+    feedback/        # Direct conversation feedback dialog
   prompts/
     support.txt      # Support agent system prompt
     debug.txt        # Debug mode system prompt
@@ -26,6 +27,7 @@ client-deployment/
 | `opencode.jsonc` | Site config: provider, models, MCP server URLs, permissions, and prompt references |
 | `tui.jsonc` | Site TUI config loaded through `OPENCODE_TUI_CONFIG` |
 | `plugins/slurm-sidebar/` | Read-only sidebar that runs local Slurm commands only on user-requested refresh |
+| `plugins/feedback/` | No-LLM feedback dialog with an explicitly confirmed conversation attachment |
 | `prompts/` | Prompt files referenced by `opencode.jsonc` via `{file:./prompts/...}` |
 
 ## Target site layout
@@ -39,6 +41,7 @@ Delta uses `/sw/external/` for system software. After deployment, the install ro
   tui.jsonc
   plugins/
     slurm-sidebar/
+    feedback/
   prompts/
     support.txt
     debug.txt
@@ -82,6 +85,7 @@ mkdir -p /sw/external/opencode/plugins
 cp opencode.jsonc /sw/external/opencode/opencode.json
 cp tui.jsonc /sw/external/opencode/tui.jsonc
 cp -R plugins/slurm-sidebar /sw/external/opencode/plugins/
+cp -R plugins/feedback /sw/external/opencode/plugins/
 cp prompts/support.txt prompts/debug.txt prompts/learning.txt prompts/report.txt /sw/external/opencode/prompts/
 ```
 
@@ -123,6 +127,8 @@ opencode
 Loading the module sets `OPENCODE_CONFIG`, `OPENCODE_TUI_CONFIG`, and `NCSA_LLM_URL` automatically. Users do not need a personal install or config export.
 
 Run `/jobs` to enable the Slurm sidebar and load status once. Click `[Refresh]` or run `/jobs-refresh` for another update. The sidebar performs no background polling.
+
+Run `/feedback` to select a category, enter a short comment, and explicitly confirm attachment of the visible conversation. Submission makes one request to `HPCGPT_FEEDBACK_URL`; no request is made until the user confirms. The deployment must set that variable after choosing a feedback service.
 
 Use learning mode when a student wants TA-style explanation, focused questions, mechanical bug diagnosis, or a non-solution source skeleton while retaining ownership of the core algorithm.
 
