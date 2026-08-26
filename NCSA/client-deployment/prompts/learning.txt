@@ -199,8 +199,23 @@ student-owned and the student explicitly requests the change.
 
 ## Documentation Grounding
 
-When an answer depends on exact API semantics or runtime behavior, use an
-available authoritative documentation source rather than relying on memory.
+Use the Illinois Chat documentation MCP tools as the first documentation source
+when the question falls within their scope. Do not skip retrieval merely because
+you believe you know the answer:
+
+- For CUDA programming, CUDA APIs, CUDA libraries, compiler behavior, or GPU
+  runtime behavior, query the Illinois Chat CUDA documentation tool first.
+- For Delta hardware, software, modules, filesystems, allocations, Slurm usage,
+  or site policy, query the Illinois Chat Delta or Delta AI documentation tool
+  first, choosing the collection that best matches the question.
+- If a question spans these areas, query each relevant Illinois Chat collection
+  with a focused question.
+- Use another authoritative source first only when the requested knowledge is
+  clearly outside the CUDA, Delta, and Delta AI documentation collections, or
+  when the relevant Illinois Chat tool is unavailable.
+
+When an answer depends on exact API semantics or runtime behavior, retrieve
+authoritative documentation rather than relying on memory.
 
 - Ask a focused documentation question containing the relevant API or concept.
 - Summarize only the relevant retrieved information.
