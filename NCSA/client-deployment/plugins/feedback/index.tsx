@@ -1,9 +1,8 @@
 import type { TuiPluginApi, TuiPluginModule } from "@opencode-ai/plugin/tui"
 
+import { sendFeedback } from "./mail.js"
+
 const MAX_FEEDBACK_CHARS = 4_000
-const MAX_MESSAGES = 50
-const MAX_MESSAGE_CHARS = 2_400
-const REQUEST_TIMEOUT_MS = 10_000
 
 const categories = [
   { title: "Helpful", value: "helpful", description: "The response worked well" },
@@ -16,38 +15,6 @@ const categories = [
 
 type FeedbackCategory = (typeof categories)[number]["value"]
 
-function clip(value: string) {
-  if (value.length <= MAX_MESSAGE_CHARS) return { value, truncated: false }
-  const marker = "\n...[truncated]...\n"
-  const side = Math.floor((MAX_MESSAGE_CHARS - marker.length) / 2)
-  return { value: `${value.slice(0, side)}${marker}${value.slice(-side)}`, truncated: true }
-}
-
-function transcript(api: TuiPluginApi, sessionID: string) {
-  const all = api.state.session.messages(sessionID).flatMap((message) => {
-    const content = api.state
-      .part(message.id)
-      .flatMap((part) =>
-        part.type === "text" && !part.synthetic && !part.ignored ? [part.text] : [],
-      )
-      .join("\n")
-      .trim()
-
-    if (!content) return []
-    return [{ id: message.id, role: message.role, created: message.time.created, content }]
-  })
-
-  const selected = all.length > MAX_MESSAGES ? [all[0], ...all.slice(-(MAX_MESSAGES - 1))] : all
-  let truncated = selected.length !== all.length
-  const messages = selected.map((message) => {
-    const content = clip(message.content)
-    truncated ||= content.truncated
-    return { ...message, content: content.value }
-  })
-
-  return { messages, truncated }
-}
-
 function currentSessionID(api: TuiPluginApi) {
   const route = api.route.current
   if (route.name !== "session" || !("params" in route)) return
@@ -55,63 +22,39 @@ function currentSessionID(api: TuiPluginApi) {
 }
 
 function payload(api: TuiPluginApi, sessionID: string, category: FeedbackCategory, comment: string) {
-  const messages = api.state.session.messages(sessionID)
-  const assistant = [...messages].reverse().find((message) => message.role === "assistant")
-  const conversation = transcript(api, sessionID)
+  const info = api.state.session.get(sessionID)
+  if (!info) throw new Error("The current session is unavailable")
+  const uid = (process.env.USER?.trim() || "unknown")
+    .replace(/[^A-Za-z0-9._-]/g, "_")
+    .slice(0, 64)
 
   return {
-    version: 1,
+    uid: uid || "unknown",
     category,
     comment,
-    submitted_at: new Date().toISOString(),
-    client: { opencode_version: api.app.version },
-    session: {
-      id: sessionID,
-      title: api.state.session.get(sessionID)?.title,
-      agent: assistant?.agent,
-      mode: assistant?.role === "assistant" ? assistant.mode : undefined,
-      model:
-        assistant?.role === "assistant"
-          ? `${assistant.providerID}/${assistant.modelID}`
-          : undefined,
+    session_export: {
+      info,
+      messages: api.state.session.messages(sessionID).map((message) => ({
+        info: message,
+        parts: api.state.part(message.id),
+      })),
     },
-    conversation: conversation.messages,
-    conversation_truncated: conversation.truncated,
-  }
-}
-
-async function submitFeedback(body: ReturnType<typeof payload>) {
-  const endpoint = process.env.HPCGPT_FEEDBACK_URL?.trim()
-  if (!endpoint) throw new Error("Feedback destination is not configured")
-
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
-  try {
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    })
-    if (!response.ok) throw new Error(`Feedback service returned HTTP ${response.status}`)
-  } finally {
-    clearTimeout(timeout)
   }
 }
 
 function confirm(api: TuiPluginApi, sessionID: string, category: FeedbackCategory, comment: string) {
-  const body = payload(api, sessionID, category, comment)
-  const count = body.conversation.length
-  const suffix = body.conversation_truncated ? " (truncated)" : ""
+  const count = api.state.session.messages(sessionID).length
 
   api.ui.dialog.replace(() => (
     <api.ui.DialogConfirm
       title="Submit feedback"
-      message={`Attach ${count} visible user/assistant messages${suffix}? System prompts, reasoning, tool output, and files are excluded.`}
+      message={`Attach the full ${count}-message OpenCode session? It may include reasoning, tool output, and file content.`}
       onCancel={() => api.ui.dialog.clear()}
       onConfirm={() => {
         api.ui.dialog.clear()
-        void submitFeedback(body)
+        void Promise.resolve()
+          .then(() => payload(api, sessionID, category, comment))
+          .then(sendFeedback)
           .then(() => api.ui.toast({ variant: "success", title: "Feedback", message: "Feedback submitted." }))
           .catch((cause) =>
             api.ui.toast({

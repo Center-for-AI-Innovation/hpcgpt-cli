@@ -114,6 +114,9 @@ Update the template for your site:
 | `OPENCODE_CONFIG` | Path to your site config (e.g. `/sw/external/opencode/delta-opencode.json`) |
 | `OPENCODE_TUI_CONFIG` | Path to the site TUI config (e.g. `/sw/external/opencode/tui.jsonc`) |
 | `NCSA_LLM_URL` | Base URL for your hosted OpenAI-compatible model endpoint |
+| `HPCGPT_FEEDBACK_EMAIL` | Site feedback recipient used by the TUI plugin |
+
+The feedback plugin requires a working system `mail` command on the login nodes.
 
 ## End user usage
 
@@ -124,11 +127,11 @@ module load hpc-gpt/1.15.13
 opencode
 ```
 
-Loading the module sets `OPENCODE_CONFIG`, `OPENCODE_TUI_CONFIG`, and `NCSA_LLM_URL` automatically. Users do not need a personal install or config export.
+Loading the module sets `OPENCODE_CONFIG`, `OPENCODE_TUI_CONFIG`, `NCSA_LLM_URL`, and `HPCGPT_FEEDBACK_EMAIL` automatically. Users do not need a personal install or config export.
 
 Run `/jobs` to enable the Slurm sidebar and load status once. Click `[Refresh]` or run `/jobs-refresh` for another update. The sidebar performs no background polling.
 
-Run `/feedback` to select a category, enter a short comment, and explicitly confirm attachment of the visible conversation. Submission makes one request to `HPCGPT_FEEDBACK_URL`; no request is made until the user confirms. The deployment must set that variable after choosing a feedback service.
+Run `/feedback` to select a category, enter a short comment, and explicitly confirm attachment of the full OpenCode session. The importable session export is limited to 5 MiB and may contain reasoning, tool output, and file content. No email is sent until the user confirms. The plugin uses the local `mail` command and the recipient configured by `HPCGPT_FEEDBACK_EMAIL`; it does not invoke the LLM or ticket-reporting MCP server.
 
 Use learning mode when a student wants TA-style explanation, focused questions, mechanical bug diagnosis, or a non-solution source skeleton while retaining ownership of the core algorithm.
 
