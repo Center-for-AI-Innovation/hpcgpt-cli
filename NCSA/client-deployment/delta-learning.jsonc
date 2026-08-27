@@ -1,0 +1,206 @@
+{
+    "$schema": "https://opencode.ai/config.json",
+    "autoupdate": false,
+    "enabled_providers": ["ncsahosted", "lumen"],
+    "default_agent": "learning",
+    "agent": {
+      "build": { "disable": true },
+      "plan": { "disable": true },
+    },
+    "mode": {
+      "learning": {
+        "model": "lumen/qwen3.8-27b",
+        "prompt": "{file:./prompts/learning.txt}",
+        "tools": {
+          "read": true,
+          "list": true,
+          "glob": true,
+          "grep": true,
+          "write": true,
+          "edit": true,
+          "bash": true
+        },
+        "permission": {
+          "read": "allow",
+          "list": "allow",
+          "glob": "allow",
+          "grep": "allow",
+          "edit": "ask",
+          "bash": {
+            "*": "ask",
+            "pwd": "allow",
+            "ls *": "allow",
+            "find *": "allow",
+            "grep *": "allow",
+            "make -n*": "allow",
+            "bash -n *": "allow",
+            "git status*": "allow",
+            "git diff*": "allow",
+            "rm *": "deny",
+            "rm -r *": "deny",
+            "rm -rf *": "deny",
+            "sbatch *": "ask",
+            "srun *": "ask",
+            "salloc *": "ask",
+            "scancel *": "ask"
+          },
+          "task": "deny",
+          "external_directory": "ask"
+        }
+      }
+    },
+    "provider": {
+      "ncsahosted": {
+        "npm": "@ai-sdk/openai-compatible",
+        "name": "NCSA DGX",
+        "options": {
+          "baseURL": "{env:NCSA_LLM_URL}"
+        },
+        "models": {
+          "Qwen/Qwen3.6-27B": {
+            "name": "Qwen 3.6 27B",
+            "options": {
+              "stream": true
+            }
+          }
+        }
+      },
+      "lumen": {
+        "npm": "@ai-sdk/openai-compatible",
+        "name": "NCSA Lumen",
+        "options": {
+          "baseURL": "https://lumen.ncsa.illinois.edu/v1",
+          "apiKey": "{file:./lumen.txt}"
+        },
+        "models": {
+          "deepseek-v4-flash": {
+            "name": "deepseek-v4-flash",
+            "limit": {
+              "context": 1048570,
+              "output": 384000
+            },
+            "cost": {
+              "input": 0.14025,
+              "output": 0.290945
+            }
+          },
+          "gemma-4-31b-it": {
+            "name": "gemma-4-31b-it",
+            "limit": {
+              "context": 68192,
+              "output": 131072
+            },
+            "cost": {
+              "input": 0.17404,
+              "output": 0.43664
+            }
+          },
+          "glm-5.2": {
+            "name": "glm-5.2",
+            "limit": {
+              "context": 500410,
+              "output": 101376
+            },
+            "cost": {
+              "input": 1.307774,
+              "output": 4.264672
+            }
+          },
+          "muse-glimmer-30b": {
+            "name": "muse-glimmer-30b",
+            "limit": {
+              "context": 131066,
+              "output": 131072
+            },
+            "cost": {
+              "input": 0.35,
+              "output": 1.5
+            }
+          },
+          "nemotron-3-super-120b-a12b": {
+            "name": "nemotron-3-super-120b-a12b",
+            "limit": {
+              "context": 262144,
+              "output": 16384
+            },
+            "cost": {
+              "input": 0.160667,
+              "output": 0.788778
+            }
+          },
+          "qwen3-coder-next": {
+            "name": "qwen3-coder-next",
+            "limit": {
+              "context": 131066,
+              "output": 65536
+            },
+            "cost": {
+              "input": 0.2046,
+              "output": 1.1465
+            }
+          },
+          "qwen3.6-35b-a3b": {
+            "name": "qwen3.6-35b-a3b",
+            "limit": {
+              "context": 262138,
+              "output": 16384
+            },
+            "cost": {
+              "input": 0.192306,
+              "output": 1.162368
+            }
+          },
+          "qwen3.8-27b": {
+            "name": "qwen3.8-27b",
+            "limit": {
+              "context": 250542,
+              "output": 250542
+            },
+            "cost": {
+              "input": 0.192306,
+              "output": 1.162368
+            }
+          }
+        }
+      }
+    },
+    "mcp": {
+      "slurm-mcp-server": {
+        "type": "remote",
+        "url": "http://dt-hpcgpt:8001/mcp",
+        "enabled": true
+      },
+      "illinois-chat-server": {
+        "type": "remote", 
+        "url": "http://dt-hpcgpt:8002/mcp",
+        "enabled": true
+      },
+      "report-server": {
+        "type": "remote",
+        "url": "http://dt-hpcgpt:8003/mcp", 
+        "enabled": true
+      },
+      "knowledge-base-server": {
+        "type": "remote",
+        "url": "http://dt-hpcgpt:8004/mcp",
+        "enabled": true
+      }
+    },
+    "command": {
+      "report": {
+        // Description shown in the TUI
+        "template": "{file:./prompts/report.txt}",
+        "description": "Report an issue to the Delta support team",
+        "agent": "support",
+        "model": "lumen/qwen3.8-27b"
+      }
+    },
+    // I'm disabling sharing as i don't think this is a feature we want on Delta
+    "share": "disabled",
+    // Configure permissions to control what AI agents can do by default.
+    "permission": {
+      "edit": "ask",
+      "bash": "ask"
+    }
+  }
+  

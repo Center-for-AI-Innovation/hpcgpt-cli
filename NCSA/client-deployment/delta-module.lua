@@ -1,6 +1,6 @@
 -- Module file for the Delta HPC-GPT OpenCode AI coding agent CLI
 local root = "/sw/external/opencode"
-local version = "1.17.11"
+local version = "1.18.23"
 
 help([[
 Delta HPC-GPT OpenCode AI coding agent CLI

@@ -6,6 +6,7 @@
 .env
 .env.*
 config.json
+lumen.txt
 
 # Allow an example .env file
 !.env.example
