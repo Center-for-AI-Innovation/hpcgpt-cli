@@ -17,8 +17,10 @@ spec:
         {{- include "osc-mcp.osc_chat.selectorLabels" . | nindent 8 }}
         receiver: '{{ index .Values.global.alert.receiver }}'
     spec:
+      {{- with .Values.global.imagePullSecrets }}
       imagePullSecrets:
-        - name: {{ include "osc.common.imagePullSecret.name" . }}
+        {{- tpl (toYaml .) $ | nindent 8 }}
+      {{- end }}
       serviceAccountName: {{ include "osc-mcp.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
@@ -28,7 +30,7 @@ spec:
       {{- end }}
       containers:
         - name: osc-chat
-          image: {{ include "osc-mcp.image" (dict "imageRoot" .Values.osc_chat.image "global" .Values.global "env" (include "osc.common.environment" .)) }}
+          image: {{ include "osc-mcp.image" (dict "imageRoot" .Values.osc_chat.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.osc_chat.image.pullPolicy }}
           ports:
             - name: http

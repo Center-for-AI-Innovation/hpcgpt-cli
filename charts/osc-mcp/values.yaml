@@ -1,33 +1,12 @@
 global:
+  # @ignored
   imageRegistry: docker-registry.osc.edu
-  imagePullSecret:
-    name: osc-registry
-    # -- OSC registry password
-    # @default -- **required**
-    password:
-  oscServiceAccount: oscchat
-  database:
-    allowIngress: true
-  security:
-    allowInsecureImages: true
-  storageClass: local-ess
-  pvcLabels:
-    osc.edu/service-account: oscchat
-  pvcAnnotations:
-    osc.edu/fileset: PZS0645
-  fileset: PZS0645
-  # @ignored
-  webservicesDeploy:
-    create: false
-  # @ignored
-  debugGroups:
-    - sappstf
-  # @ignored
-  maintenanceGroups:
-    - sappstf
   # @ignored
   alert:
     receiver: sciapps
+  # @ignored
+  imagePullSecrets:
+    - name: osc-registry
 
 ingress:
   enabled: true
@@ -73,6 +52,13 @@ osc_chat:
       cpu: 250m
       memory: 256Mi
 
+networkPolicy:
+  # -- Create the Network Policy
+  create: true
+  # -- Ingress namespace to allow access
+  ingressNamespace: ingress-nginx
+  # -- Prometheus namespace to allow access
+  prometheusNamespace: prometheus
 
 #slurm:
 #  port: 8001
