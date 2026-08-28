@@ -24,7 +24,3 @@ version: 0.1.8
 appVersion: "0.1.8"
 maintainers:
   - name: khsa1
-dependencies:
-  - name: osc-common
-    version: 0.14.2
-    repository: https://osc.github.io/osc-helm-charts
