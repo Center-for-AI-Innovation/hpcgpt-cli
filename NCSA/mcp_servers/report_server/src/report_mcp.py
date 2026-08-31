@@ -109,7 +109,7 @@ class ReportMCP(FastMCP):
             comment = f"User: {user_info['username']}\nHostname: {parameters.hostname}\nCurrent Working Directory: {parameters.current_working_directory}\nGroups: {user_info['groups']}"
         else:
             comment = f"User: {parameters.user}\nHostname: {parameters.hostname}\nCurrent Working Directory: {parameters.current_working_directory}"
-        self.jira.add_comment(issue.key, comment, visibility="Staff")
+        self.jira.add_comment(issue.key, comment)
 
         issue_url = f"{self.jira.server_url}/browse/{issue.key}"
         log.info(f"Issue {issue.key} created: {issue_url}")
