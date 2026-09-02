@@ -1,0 +1,30 @@
+{
+  "name": "HPCCode MCP Servers",
+  "version": "1.0.0",
+  "description": "Shared hpcGPT workspace with per-center MCP server deployments",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "install:servers": "cd NCSA/mcp_servers/illinois_chat_server && bun install && cd ../slurm_mcp_server && bun install && cd ../report_server && bun install && cd ../../..",
+    "install:jira": "mkdir -p containers && apptainer pull containers/atlassian-mcp-server.sif docker://ghcr.io/sooperset/mcp-atlassian:latest",
+    "build:illinois": "cd NCSA/mcp_servers/illinois_chat_server && bun run build",
+    "build:slurm": "cd NCSA/mcp_servers/slurm_mcp_server && bun run build",
+    "build:report": "cd NCSA/mcp_servers/report_server && bun run build",
+    "build": "bun run install:servers && bun run build:illinois && bun run build:slurm && bun run build:report",
+    "slurm-mcp-server": "node NCSA/mcp_servers/slurm_mcp_server/dist/index.js",
+    "illinois-chat-mcp-server": "node NCSA/mcp_servers/illinois_chat_server/dist/index.js",
+    "report-server": "node NCSA/mcp_servers/report_server/dist/index.js",
+    "atlassian-mcp-server": "apptainer run --env-file NCSA/.env.atlassian containers/atlassian-mcp-server.sif"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "tsx": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

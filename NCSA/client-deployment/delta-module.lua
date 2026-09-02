@@ -1,6 +1,6 @@
 -- Module file for the Delta HPC-GPT OpenCode AI coding agent CLI
 local root = "/sw/external/opencode"
-local version = "1.17.11"
+local version = "1.18.23"
 
 help([[
 Delta HPC-GPT OpenCode AI coding agent CLI
@@ -20,7 +20,9 @@ whatis("URL: https://opencode.ai")
 
 prepend_path("PATH", pathJoin(root, "bin"))
 setenv("OPENCODE_CONFIG", pathJoin(root, "delta-opencode.jsonc")) -- Set this to your own config file
+setenv("OPENCODE_TUI_CONFIG", pathJoin(root, "tui.jsonc"))
 setenv("NCSA_LLM_URL", "https://example.endpoint/v1") -- Set this to your own hosted model URL
+setenv("HPCGPT_FEEDBACK_EMAIL", "feedback@example.edu") -- Set this to the site feedback address
 
 if (mode() == "load") then
   -- LmodMsgRaw avoids LmodMessage's line-wrapping ("Fill"), which distorts ASCII art.
