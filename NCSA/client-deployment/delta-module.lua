@@ -22,7 +22,8 @@ prepend_path("PATH", pathJoin(root, "bin"))
 setenv("OPENCODE_CONFIG", pathJoin(root, "delta-opencode.jsonc")) -- Set this to your own config file
 setenv("OPENCODE_TUI_CONFIG", pathJoin(root, "tui.jsonc"))
 setenv("NCSA_LLM_URL", "https://example.endpoint/v1") -- Set this to your own hosted model URL
-setenv("HPCGPT_FEEDBACK_EMAIL", "feedback@example.edu") -- Set this to the site feedback address
+setenv("HPCGPT_FEEDBACK_EMAIL", "feedback@example.edu") -- Set in the deployed modulefile
+setenv("HPCGPT_FEEDBACK_FROM", "noreply@example.edu") -- Set in the deployed modulefile
 
 if (mode() == "load") then
   -- LmodMsgRaw avoids LmodMessage's line-wrapping ("Fill"), which distorts ASCII art.
