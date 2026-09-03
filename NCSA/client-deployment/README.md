@@ -115,6 +115,7 @@ Update the template for your site:
 | `OPENCODE_TUI_CONFIG` | Path to the site TUI config (e.g. `/sw/external/opencode/tui.jsonc`) |
 | `NCSA_LLM_URL` | Base URL for your hosted OpenAI-compatible model endpoint |
 | `HPCGPT_FEEDBACK_EMAIL` | Site feedback recipient used by the TUI plugin |
+| `HPCGPT_FEEDBACK_FROM` | Authorized sender used by the TUI plugin |
 
 The feedback plugin requires a working system `mail` command on the login nodes.
 
@@ -127,7 +128,7 @@ module load hpc-gpt/1.15.13
 opencode
 ```
 
-Loading the module sets `OPENCODE_CONFIG`, `OPENCODE_TUI_CONFIG`, `NCSA_LLM_URL`, and `HPCGPT_FEEDBACK_EMAIL` automatically. Users do not need a personal install or config export.
+Loading the module sets `OPENCODE_CONFIG`, `OPENCODE_TUI_CONFIG`, `NCSA_LLM_URL`, `HPCGPT_FEEDBACK_EMAIL`, and `HPCGPT_FEEDBACK_FROM` automatically. Users do not need a personal install or config export.
 
 Run `/jobs` to enable the Slurm sidebar and load status once. Click `[Refresh]` or run `/jobs-refresh` for another update. The sidebar performs no background polling.
 
