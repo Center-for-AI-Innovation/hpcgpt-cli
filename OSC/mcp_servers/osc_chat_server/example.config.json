@@ -1,0 +1,9 @@
+{
+    "host": "127.0.0.1",
+    "port": 8001,
+    "log_file": "logs/Latest.log",
+    "osc_chat_url": "https://my.chat/api",
+    "osc_chat_api_key": "my_api_key",
+    "osc_chat_model": "qwen3-coder-30b-4bit",
+    "osc_chat_system_prompt": "You are a helpful assistant that can answer questions about the OSC documentation. You are also able to answer questions about the software installed at OSC."
+}

@@ -1,0 +1,121 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "autoupdate": false,
+  "enabled_providers": ["oschosted"],
+  "agent": {
+    "build": { "disable": true },
+    "plan": { "disable": true },
+  },
+  "mode": {
+    "support": {
+      "model": "oschosted/qwen3-coder-30b",
+      "prompt": "{file:./prompts/support.txt}",
+      "tools": {
+        "write": true,
+        "edit": true,
+        "bash": true
+      }
+    }
+  },
+  "provider": {
+    "oschosted": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "OSC Hosted",
+      "options": {
+        "baseURL": "https://${OSC_LLM_PROJECT}.ai-alpha.osc.edu/api",
+        "apiKey": "{env:OSC_HOSTED_API_KEY}"
+      },
+      "models": {
+        "qwen3-coder-30b": {
+          "name": "Qwen 3 Coder 30B",
+          "options": {
+            "stream": true
+          },
+          "limit": {
+            "context": 40960,
+            "output": 8192
+          }
+        },
+        "qwen3.6-fp8": {
+          "name": "Qwen 3.6 (FP 8)",
+          "options": {
+            "stream": true
+          },
+          "limit": {
+            "context": 40960,
+            "output": 8192
+          }
+        },
+        "qwen3.8-27b-fp8": {
+          "name": "Qwen 3.8 27B (FP 8)",
+          "options": {
+            "stream": true
+          },
+          "limit": {
+            "context": 40960,
+            "output": 8192
+          }
+        },
+        "gpt-oss-120b": {
+          "name": "GPT OSS 120B",
+          "options": {
+            "stream": true
+          },
+          "limit": {
+            "context": 40960,
+            "output": 8192
+          }
+        },
+        "qwen35-122b-fp8": {
+          "name": "Qwen 3.5 122B (FP8)",
+          "options": {
+            "stream": true
+          },
+          "limit": {
+            "context": 40960,
+            "output": 8192
+          }
+        },
+        "qwen3-coder-next": {
+          "name": "Qwen 3 Coder Next",
+          "options": {
+            "stream": true
+          },
+          "limit": {
+            "context": 40960,
+            "output": 8192
+          }
+        }
+      }
+    }
+  },
+  "mcp": {
+    "slurm-mcp-server": {
+      "type": "local",
+      "command": [
+        "{env:HPCGPT_ROOT}/mcp_servers/slurm_server/.venv/bin/python",
+        "{env:HPCGPT_ROOT}/mcp_servers/slurm_server/server.py",
+        "-c",
+        "{env:HPCGPT_ROOT}/mcp_servers/slurm_server/config.json"
+      ],
+      "enabled": true
+    },
+    "osc-chat-server": {
+      "type": "remote",
+      "url": "{env:OSC_CHAT_MCP}",
+      "headers": {
+        "x-osc-user": "{env:USER}",
+        "x-osc-group": "{env:OSC_LLM_PROJECT}",
+      },
+      "enabled": true
+    }
+  },
+  "command": {
+  },
+  "share": "disabled",
+  "disabled_providers": ["opencode", "openai"],
+  "permission": {
+    "edit": "ask",
+    "bash": "ask"
+  }
+}

@@ -9,7 +9,9 @@ hpcGPT is a shared CLI foundation built on top of the `Opencode` agent for HPC c
 
 ## Current Deployments
 
-- `NCSA/` - NCSA-specific deployment (Delta-focused prototype and tooling)
+- [`NCSA/`](NCSA/) — NCSA deployment for Delta (support assistant, MCP servers, site module install)
+- [`OSC/`](OSC/) - OSC-specific deployment
+
 
 ## TL;DR - Getting Started
 
@@ -32,10 +34,15 @@ hpcgpt-cli/
     README.md
     opencode.jsonc
     example.env
-    example.env.atlassian
     prompts/
     mcp_servers/
     doc-scraping/
+  OSC/
+    README.md
+    client-deployment/     # Site install: installer, modulefile, config, prompts
+    example.env
+    prompts/
+    mcp_servers/
 ```
 
 ## Contribution Model (Per Center)

@@ -1,0 +1,27 @@
+{{- if .Values.networkPolicy.create }}
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: {{ include "osc-mcp.name" . }}
+  labels:
+    {{- include "osc-mcp.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "osc-mcp.selectorLabels" . | nindent 6 }}
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          {{- include "osc-mcp.selectorLabels" . | nindent 10 }}
+    {{- if .Values.networkPolicy.ingressNamespace }}
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: {{ .Values.networkPolicy.ingressNamespace }}
+    {{- end }}
+    {{- if .Values.networkPolicy.prometheusNamespace }}
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: {{ .Values.networkPolicy.prometheusNamespace }}
+    {{- end }}
+{{- end }}

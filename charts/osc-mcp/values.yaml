@@ -1,0 +1,69 @@
+global:
+  # @ignored
+  imageRegistry: docker-registry.osc.edu
+  # @ignored
+  alert:
+    receiver: sciapps
+  # @ignored
+  imagePullSecrets:
+    - name: osc-registry
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+#    prometheus.io/probe_path: /health
+    prometheus.io/probe_scheme: 'https'
+    cert-manager.io/cluster-issuer: letsencrypt
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 16k
+    nginx.ingress.kubernetes.io/server-alias: '{{ .Values.ingress.hostAlias }}'
+    nginx.ingress.kubernetes.io/whitelist-source-range: '131.187.45.7,192.148.247.0/24,10.0.0.0/8'
+  host:
+  hostAlias:
+  tls:
+    - hosts:
+      - '{{ required "Ingress host must be defined" .Values.ingress.host }}'
+      - '{{ required "Ingress host alias must be defined" .Values.ingress.hostAlias }}'
+      secretName: osc-mcp
+
+replicaCount: 1
+
+extraInitContainers: []
+
+osc_chat:
+  enabled: true
+  port: 8000
+  image:
+    repository: kubernetes/hpcgpt/oscchat-mcp
+    tag: v0.1.2
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 8000
+  chatEndpoint: ""
+  apiKey: ""
+  model: ""
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+networkPolicy:
+  # -- Create the Network Policy
+  create: true
+  # -- Ingress namespace to allow access
+  ingressNamespace: ingress-nginx
+  # -- Prometheus namespace to allow access
+  prometheusNamespace: prometheus
+
+#slurm:
+#  port: 8001
+#  enabled: false
+#  image:
+#    repository: kubernetes/hpcgpt/slurm-mcp
+#    tag: v0.1.0
+#    pullPolicy: Always
