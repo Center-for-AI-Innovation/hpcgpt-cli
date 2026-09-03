@@ -19,6 +19,7 @@ class SlurmMCP(FastMCP):
         self.add_tool(self.sinfo)
         self.add_tool(self.squeue)
         self.add_tool(self.scontrol)
+        self.add_tool(self.sacct)
 
     def _run_command(self, base_command: str, arg_string: str = "") -> str:
         """
@@ -95,6 +96,22 @@ class SlurmMCP(FastMCP):
         if job_id and job_id.strip():
             command_args = f"show job {job_id}" + (f" {command_args}" if command_args else "")
         return self._run_command("scontrol", command_args)
+
+    async def sacct(self, job_id: str, sacct_args: str = "") -> str:
+        """
+        Run the sacct command with the given arguments and return the output.
+
+        Args:
+            job_id: The job ID to run the sacct command for.
+            sacct_args: The arguments to pass to the sacct command.
+
+        Returns:
+            The output of the sacct command.
+        """
+        command_args = sacct_args.strip()
+        if job_id and job_id.strip():
+            command_args = f"-j {job_id}" + (f" {command_args}" if command_args else "")
+        return self._run_command("sacct", command_args)
 
 def parse_command_line() -> argparse.Namespace:
     parser = argparse.ArgumentParser(

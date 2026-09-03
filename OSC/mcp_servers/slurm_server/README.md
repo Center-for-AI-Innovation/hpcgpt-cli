@@ -12,13 +12,14 @@ Clients connect with **Streamable HTTP** to a URL such as `http://127.0.0.1:8001
 | `sinfo` | Runs `sinfo` with optional extra arguments as a single string (e.g. `-N`, `-o "..."`). |
 | `squeue` | Runs `squeue` with optional extra arguments as a single string. |
 | `scontrol` | Runs `scontrol` with optional `scontrol_args` (the `job_id` parameter is currently unused in the implementation). |
+| `sacct` | Runs `sacct` with optional `sacct_args` (the `job_id` parameter is currently unused in the implementation). |
 
 Returned text is **standard output only**; stderr is not merged into the tool result. Failed commands may still return empty output—check cluster policies and the server log file.
 
 ## Requirements
 
 - **Python** 3.10+ (tested in line with other MCP servers in this repo)
-- **Slurm client tools** (`sinfo`, `squeue`, `scontrol`) on `PATH` if you use those tools
+- **Slurm client tools** (`sinfo`, `squeue`, `scontrol`, `sacct`) on `PATH` if you use those tools
 - **`OSCprojects`** on `PATH`
 - Python packages (from the repo directory):
 
@@ -61,7 +62,7 @@ python server.py -c /path/to/config.json -v
 
 Point your MCP client at that URL with **Streamable HTTP** transport.
 
-**Security:** This process executes arbitrary argument strings passed into `sinfo` / `squeue` / `scontrol`. Bind to localhost or place behind authentication and a trusted network; do not expose directly to the public internet.
+**Security:** This process executes arbitrary argument strings passed into `sinfo` / `squeue` / `scontrol` / `sacct`. Bind to localhost or place behind authentication and a trusted network; do not expose directly to the public internet.
 
 ## Project layout
 

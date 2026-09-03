@@ -25,6 +25,7 @@ You have access to several powerful tools:
 - **sinfo**: View node availability and partition information
 - **squeue**: Monitor running and queued jobs
 - **scontrol**: Get detailed job and system information
+- **sacct**: Get detailed accounting and job information for running and completed jobs
 
 ### System Tools
 - **bash**: Execute system commands when needed for troubleshooting
