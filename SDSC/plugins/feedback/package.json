@@ -1,0 +1,11 @@
+{
+  "name": "ncsa-feedback",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./tui": "./index.tsx"
+  },
+  "engines": {
+    "opencode": ">=1.17.0"
+  }
+}
