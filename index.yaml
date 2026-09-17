@@ -2,6 +2,18 @@ apiVersion: v1
 entries:
   osc-mcp:
   - apiVersion: v2
+    appVersion: 0.1.10
+    created: "2026-09-17T15:38:09.371198177Z"
+    description: A Helm chart for Kubernetes
+    digest: 240bf0cb324788427d1291c7f9f7127815ee3a1629d118fd063d6929ccb0b18d
+    maintainers:
+    - name: khsa1
+    name: osc-mcp
+    type: application
+    urls:
+    - https://github.com/Center-for-AI-Innovation/hpcgpt-cli/releases/download/osc-mcp-0.1.10/osc-mcp-0.1.10.tgz
+    version: 0.1.10
+  - apiVersion: v2
     appVersion: 0.1.9
     created: "2026-08-28T19:03:24.917845412Z"
     description: A Helm chart for Kubernetes
@@ -157,4 +169,4 @@ entries:
     urls:
     - https://github.com/Center-for-AI-Innovation/hpcgpt-cli/releases/download/osc-mcp-0.1.0/osc-mcp-0.1.0.tgz
     version: 0.1.0
-generated: "2026-08-28T19:03:24.917877981Z"
+generated: "2026-09-17T15:38:09.371253219Z"
