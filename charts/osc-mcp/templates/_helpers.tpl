@@ -54,7 +54,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Create the name of the service account to use
 */}}
 {{- define "osc-mcp.serviceAccountName" -}}
-{{- include "osc-mcp.name" . }}
+{{- include "osc-mcp.fullname" . }}
 {{- end }}
 
 {{/*
