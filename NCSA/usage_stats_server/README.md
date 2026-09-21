@@ -65,3 +65,25 @@ export HPCGPT_USAGE_URL=http://dt-hpcgpt:8005
 ```
 
 The `hpc-gpt` wrapper POSTs to `${HPCGPT_USAGE_URL}/v1/sessions` after each session. Telemetry is best-effort and does not affect the user session if the server is unreachable.
+
+## Plotting usage
+
+`plot_usage_stats.py` reads the SQLite database and writes the same style of pie charts as the cron CSV analyzer (`unique_opens.png`, `time_used.png`):
+
+```bash
+# from NCSA/usage_stats_server with deps installed
+python plot_usage_stats.py
+python plot_usage_stats.py --db-path data/usage.db -s 2026-09-01 -e 2026-09-30 -n 10
+python plot_usage_stats.py -o unique_opens.png --time-output time_used.png
+```
+
+| Flag | Purpose | Default |
+|------|---------|---------|
+| `--db-path` | SQLite path (else taken from `config.json`) | `data/usage.db` |
+| `-o` / `--output` | Unique-opens pie chart path | `unique_opens.png` |
+| `--time-output` | Time-used pie chart path | `time_used.png` |
+| `-s` / `--starttime` | Include sessions starting on/after | 1 month ago |
+| `-e` / `--endtime` | Include sessions starting on/before | now |
+| `-n` / `--top-n` | Top users shown individually; rest → `other` | `10` |
+
+Unique opens count one launch per stored session. Time used sums `duration_sec` per user and plots whole minutes.
