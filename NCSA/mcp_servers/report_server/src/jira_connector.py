@@ -296,7 +296,8 @@ class JiraConnectionManager:
             
             log.info(f"Successfully added comment to {issue_key}")
             log.info(f"  Comment ID: {comment.id}")
-            log.info(f"  Visibility: {visibility_dict['value']} ({visibility_dict['type']}) only")
+            if visibility_dict is not None:
+                log.info(f"  Visibility: {visibility_dict['value']} ({visibility_dict['type']}) only")
             log.info(f"  Issue URL: {result['issue_url']}")
             
             return result
