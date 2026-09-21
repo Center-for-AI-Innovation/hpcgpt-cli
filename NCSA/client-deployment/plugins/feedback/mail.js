@@ -7,8 +7,12 @@ const MAIL_TIMEOUT_MS = 10_000
 
 export async function sendFeedback(feedback) {
   const recipient = process.env.HPCGPT_FEEDBACK_EMAIL?.trim()
+  const sender = process.env.HPCGPT_FEEDBACK_FROM?.trim()
   if (!recipient || !/^[^@\s]+@[^@\s]+$/.test(recipient)) {
     throw new Error("Feedback email is not configured")
+  }
+  if (!sender || !/^[^@\s]+@[^@\s]+$/.test(sender)) {
+    throw new Error("Feedback sender is not configured")
   }
 
   const session = JSON.stringify(feedback.session_export)
@@ -23,6 +27,8 @@ export async function sendFeedback(feedback) {
     const child = Bun.spawn({
       cmd: [
         "mail",
+        "-r",
+        sender,
         "-s",
         `hpcGPT Feedback [${feedback.uid}] [${feedback.category}]`,
         "-a",
