@@ -38,7 +38,7 @@ def parse_command_line() -> argparse.Namespace:
     )
     p.add_argument('-d', '--db-path',
         type=parse_filepath,
-        default="usage.db",
+        default="data/usage.db",
         help="SQLite database path (overrides config). Default is usage.db.")
     p.add_argument('-o', '--output',
         type=str,
@@ -137,10 +137,10 @@ def main(args: argparse.Namespace) -> None:
     df = load_sessions(args.db_path, args.starttime, args.endtime)
     unique_opens = get_unique_opens(df)
     time_used = get_time_used_minutes(df)
-    plot_unique_opens(unique_opens, args.output / "unique_opens.png", n=args.top_n)
-    plot_time_used(time_used, args.output / "time_used.png", n=args.top_n)
-    print(f"Wrote {args.output / 'unique_opens.png'} ({sum(unique_opens.values())} opens)")
-    print(f"Wrote {args.output / 'time_used.png'} ({sum(time_used.values())} minutes)")
+    plot_unique_opens(unique_opens, os.path.join(args.output, "unique_opens.png"), n=args.top_n)
+    plot_time_used(time_used, os.path.join(args.output, "time_used.png"), n=args.top_n)
+    print(f"Wrote {os.path.join(args.output, 'unique_opens.png')} ({sum(unique_opens.values())} opens)")
+    print(f"Wrote {os.path.join(args.output, 'time_used.png')} ({sum(time_used.values())} minutes)")
 
 
 if __name__ == "__main__":
