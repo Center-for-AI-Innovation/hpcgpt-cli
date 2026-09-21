@@ -13,7 +13,7 @@ This directory contains the NCSA deployment of hpcGPT for Delta. It provides a s
 
 ```bash
 module load hpc-gpt/1.15.13
-opencode
+hpc-gpt
 ```
 
 See [`client-deployment/README.md`](client-deployment/README.md) for site-admin install instructions.
@@ -81,7 +81,8 @@ graph TD
 - The **support** mode is the primary user-facing support assistant, configured with Delta-specific prompts and tool permissions.
 - The **debug** mode is the hands-on troubleshooting assistant. It can inspect files, edit project files, and run lightweight commands, while keeping `bash` and `edit` approval-gated and directing real compute through Slurm.
 - The **learning** mode is teaching-first. It reads project instructions, asks focused questions, catches mechanical CUDA/C++ mistakes, uses CUDA documentation for exact API facts, and does not implement the core assignment algorithm.
-- In production on Delta, MCP servers run as remote HTTP endpoints on `dt-hpcgpt` (ports 8001–8004 for Slurm, Illinois Chat, report, and knowledge-base). For local development, run the Python servers from `mcp_servers/` and point the config URLs at `http://127.0.0.1:<port>/mcp`.
+- In production on Delta, MCP servers run as remote HTTP endpoints on `dt-hpcgpt` (ports 8001–8004 for Slurm, Illinois Chat, report, and knowledge-base). The usage-stats ingest server runs on `dt-hpcgpt:8005`. For local development, run the Python servers from `mcp_servers/` (and `usage_stats_server/`) and point the config URLs at `http://127.0.0.1:<port>/mcp` (or `http://127.0.0.1:8005` for usage stats).
+- Users should run `hpc-gpt` (wrapper next to `opencode`) so session launch/duration is reported to the usage-stats server via `HPCGPT_USAGE_URL`.
 - `slurm-mcp-server` shells out to local Slurm commands on the host where it runs.
 - The sidebar plugin runs local `squeue` and `sacct` commands only when the user requests a refresh; it does not invoke the model or submit jobs.
 - `illinois-chat-server` calls the Illinois Chat API to answer questions from Delta and Delta AI documentation.
@@ -92,8 +93,9 @@ graph TD
 
 ```text
 NCSA/
-  client-deployment/       # Site install: installer, modulefile, config, prompts
+  client-deployment/       # Site install: installer, modulefile, wrapper, config, prompts
     installer.sh
+    hpc-gpt
     module.lua
     opencode.jsonc
     tui.jsonc
@@ -109,14 +111,15 @@ NCSA/
     slurm_server/
     illinois_chat_server/
     report_server/
-    ticket_server/           
+    ticket_server/
+  usage_stats_server/        # Session launch/duration ingest API (dt-hpcgpt:8005)
   ticket-ingest/             # Jira ticket → Q&A dataset pipeline
   doc-scraping/              # Delta documentation link lists
   example.env
   README.md
 ```
 
-Each MCP server has its own README with setup and configuration details.
+Each MCP server (and the usage-stats server) has its own README with setup and configuration details.
 
 ## MCP Servers & Tools
 
@@ -161,6 +164,20 @@ python server.py
 
 Update the `mcp` URLs in `client-deployment/opencode.jsonc` to point at your local instances (e.g. `http://127.0.0.1:8001/mcp`).
 
+### Local usage-stats server
+
+```bash
+cd usage_stats_server
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp example.config.json config.json
+python server.py
+export HPCGPT_USAGE_URL=http://127.0.0.1:8005
+```
+
+See [`usage_stats_server/README.md`](usage_stats_server/README.md).
+
 ## Environment Configuration
 
 Use `example.env` as a reference and export values in your shell or `.env`.
@@ -170,6 +187,8 @@ Use `example.env` as a reference and export values in your shell or `.env`.
 - `NCSA_LLM_URL` — Base URL for the NCSA Hosted models provider (set automatically by the Lmod module on Delta).
 - `OPENCODE_CONFIG` — Path to the site or dev config file (set automatically by the Lmod module on Delta).
 - `OPENCODE_TUI_CONFIG` — Path to the site TUI config that loads the Slurm sidebar.
+- `HPCGPT_USAGE_URL` — Base URL for the usage-stats ingest server (set automatically by the Lmod module on Delta; default `http://dt-hpcgpt:8005`).
+- `HPCGPT_FEEDBACK_EMAIL` — Recipient for the TUI feedback plugin.
 
 Illinois Chat and report server credentials are configured in each server's `config.json` (see `mcp_servers/illinois_chat_server/example.config.json`). The ticket knowledge base server points at a JSON file produced by `ticket-ingest/` via `data_dir` or `data_file` in `mcp_servers/ticket_server/example.config.json`.
 
