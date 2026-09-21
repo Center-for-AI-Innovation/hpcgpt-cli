@@ -14,9 +14,6 @@ from dateutil.relativedelta import relativedelta
 from dateutil.parser import parse as dateutil_parse
 from rich_argparse import RichHelpFormatter
 
-from src.config import Config
-
-
 def parse_command_line() -> argparse.Namespace:
     def parse_datetime(s: str) -> datetime:
         """Command line argument parser for datetime arguments. Uses dateutil parser to accept any type of datetime format."""
@@ -40,7 +37,7 @@ def parse_command_line() -> argparse.Namespace:
     p.add_argument('-d', '--db-path',
         type=parse_filepath,
         default="data/usage.db",
-        help="SQLite database path (overrides config). Default is usage.db.")
+        help="SQLite database path. Default is data/usage.db.")
     p.add_argument('-o', '--output',
         type=str,
         default="plots",
@@ -122,6 +119,8 @@ def _pie_top_n(counts: dict[str, int], output_file: str, title_prefix: str, n: i
     ax.pie(sizes, labels=labels, autopct=lambda pct: f"{int(round(pct * total / 100.0))}")
     ax.set_title(f"{title_prefix} (Total: {total})")
     plt.tight_layout()
+    if not os.path.exists(os.path.dirname(output_file)):
+        os.makedirs(os.path.dirname(output_file))
     plt.savefig(output_file)
     plt.close()
 
