@@ -2,6 +2,7 @@
 """
 Generate usage pie charts from the usage-stats SQLite database.
 """
+import os
 import sqlite3
 import argparse
 import pandas as pd
@@ -74,17 +75,17 @@ def load_sessions(db_path: str, starttime: datetime, endtime: datetime) -> pd.Da
         return df
 
     df["started_at"] = pd.to_datetime(df["started_at"], utc=True)
-    # Normalize CLI bounds to UTC-aware for comparison
-    start = pd.Timestamp(starttime)
-    end = pd.Timestamp(endtime)
-    if start.tzinfo is None:
-        start = start.tz_localize("UTC")
-    else:
-        start = start.tz_convert("UTC")
-    if end.tzinfo is None:
-        end = end.tz_localize("UTC")
-    else:
-        end = end.tz_convert("UTC")
+
+    # CLI bounds are local system time; DB timestamps are UTC.
+    local_tz = datetime.now().astimezone().tzinfo
+
+    def to_utc(ts: pd.Timestamp) -> pd.Timestamp:
+        if ts.tzinfo is None:
+            ts = ts.tz_localize(local_tz)
+        return ts.tz_convert("UTC")
+
+    start = to_utc(pd.Timestamp(starttime))
+    end = to_utc(pd.Timestamp(endtime))
 
     return df[(df["started_at"] >= start) & (df["started_at"] <= end)].copy()
 

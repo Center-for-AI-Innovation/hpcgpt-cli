@@ -82,8 +82,8 @@ python plot_usage_stats.py -o unique_opens.png --time-output time_used.png
 | `--db-path` | SQLite path (else taken from `config.json`) | `data/usage.db` |
 | `-o` / `--output` | Unique-opens pie chart path | `unique_opens.png` |
 | `--time-output` | Time-used pie chart path | `time_used.png` |
-| `-s` / `--starttime` | Include sessions starting on/after | 1 month ago |
-| `-e` / `--endtime` | Include sessions starting on/before | now |
+| `-s` / `--starttime` | Include sessions starting on/after (local system time) | 1 month ago |
+| `-e` / `--endtime` | Include sessions starting on/before (local system time) | now |
 | `-n` / `--top-n` | Top users shown individually; rest → `other` | `10` |
 
 Unique opens count one launch per stored session. Time used sums `duration_sec` per user and plots whole minutes.
