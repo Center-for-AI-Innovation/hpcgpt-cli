@@ -52,7 +52,8 @@ Trusted campus network is assumed (no auth), matching the MCP servers on ports 8
   "started_at": "2026-09-21T15:00:00Z",
   "ended_at": "2026-09-21T15:05:00Z",
   "duration_sec": 300,
-  "exit_code": 0
+  "exit_code": 0,
+  "version": "1.18.23"
 }
 ```
 

@@ -127,6 +127,7 @@ Update the template for your site:
 | `HPCGPT_FEEDBACK_EMAIL` | Site feedback recipient used by the TUI plugin |
 <<<<<<< HEAD
 | `HPCGPT_USAGE_URL` | Base URL for the usage-stats ingest server (e.g. `http://dt-hpcgpt:8005`) |
+| `HPCGPT_VERSION` | Module version string reported with usage stats (matches the modulefile `version`) |
 =======
 | `HPCGPT_FEEDBACK_FROM` | Authorized sender used by the TUI plugin |
 >>>>>>> 3125a4d8d90dafee5521204d37d76cb8c2268205
@@ -144,7 +145,7 @@ module load hpc-gpt/1.15.13
 hpc-gpt
 ```
 
-Loading the module sets `OPENCODE_CONFIG`, `OPENCODE_TUI_CONFIG`, `NCSA_LLM_URL`, `HPCGPT_FEEDBACK_EMAIL`, `HPCGPT_FEEDBACK_FROM`, and `HPCGPT_USAGE_URL` automatically. Users do not need a personal install or config export. `hpc-gpt` launches the site `opencode` binary and best-effort reports session duration to the usage-stats server.
+Loading the module sets `OPENCODE_CONFIG`, `OPENCODE_TUI_CONFIG`, `NCSA_LLM_URL`, `HPCGPT_FEEDBACK_EMAIL`, `HPCGPT_FEEDBACK_FROM`, `HPCGPT_USAGE_URL`, and `HPCGPT_VERSION` automatically. Users do not need a personal install or config export. `hpc-gpt` launches the site `opencode` binary and best-effort reports session duration to the usage-stats server.
 
 Run `/jobs` to enable the Slurm sidebar and load status once. Click `[Refresh]` or run `/jobs-refresh` for another update. The sidebar performs no background polling.
 

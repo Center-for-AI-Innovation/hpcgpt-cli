@@ -25,6 +25,7 @@ setenv("NCSA_LLM_URL", "https://example.endpoint/v1") -- Set this to your own ho
 setenv("HPCGPT_FEEDBACK_EMAIL", "feedback@example.edu") -- Set to site's feedback emailaddress
 setenv("HPCGPT_FEEDBACK_FROM", "noreply@example.edu") -- Set to email you want feedback to be sent from
 setenv("HPCGPT_USAGE_URL", "http://dt-hpcgpt:8005") -- Address to send usage stats to; Should be where your usage-stats server is running
+setenv("HPCGPT_VERSION", version) -- Module/OpenCode version reported with usage stats
 
 if (mode() == "load") then
   -- LmodMsgRaw avoids LmodMessage's line-wrapping ("Fill"), which distorts ASCII art.

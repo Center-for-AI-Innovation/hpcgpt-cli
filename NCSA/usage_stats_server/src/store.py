@@ -29,15 +29,25 @@ class SessionStore:
                     ended_at TEXT NOT NULL,
                     duration_sec INTEGER NOT NULL,
                     exit_code INTEGER NOT NULL,
+                    version TEXT NOT NULL DEFAULT '',
                     received_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
                 )
                 """
             )
+            # Migrate DBs created before the version column existed.
+            cols = {row[1] for row in conn.execute("PRAGMA table_info(sessions)")}
+            if "version" not in cols:
+                conn.execute(
+                    "ALTER TABLE sessions ADD COLUMN version TEXT NOT NULL DEFAULT ''"
+                )
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_sessions_username ON sessions(username)"
             )
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_sessions_started_at ON sessions(started_at)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_sessions_version ON sessions(version)"
             )
             conn.commit()
 
@@ -50,14 +60,15 @@ class SessionStore:
         ended_at: str,
         duration_sec: int,
         exit_code: int,
+        version: str = "",
     ) -> dict[str, Any]:
         with self._connect() as conn:
             conn.execute(
                 """
                 INSERT INTO sessions (
                     session_id, username, hostname, started_at, ended_at,
-                    duration_sec, exit_code
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    duration_sec, exit_code, version
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(session_id) DO UPDATE SET
                     username=excluded.username,
                     hostname=excluded.hostname,
@@ -65,6 +76,7 @@ class SessionStore:
                     ended_at=excluded.ended_at,
                     duration_sec=excluded.duration_sec,
                     exit_code=excluded.exit_code,
+                    version=excluded.version,
                     received_at=strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
                 """,
                 (
@@ -75,6 +87,7 @@ class SessionStore:
                     ended_at,
                     duration_sec,
                     exit_code,
+                    version,
                 ),
             )
             conn.commit()

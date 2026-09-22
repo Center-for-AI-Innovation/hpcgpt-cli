@@ -188,6 +188,7 @@ Use `example.env` as a reference and export values in your shell or `.env`.
 - `OPENCODE_CONFIG` — Path to the site or dev config file (set automatically by the Lmod module on Delta).
 - `OPENCODE_TUI_CONFIG` — Path to the site TUI config that loads the Slurm sidebar.
 - `HPCGPT_USAGE_URL` — Base URL for the usage-stats ingest server (set automatically by the Lmod module on Delta; default `http://dt-hpcgpt:8005`).
+- `HPCGPT_VERSION` — Module version string included in usage-stats reports (set automatically by the Lmod module on Delta).
 - `HPCGPT_FEEDBACK_EMAIL` — Recipient for the TUI feedback plugin.
 
 Illinois Chat and report server credentials are configured in each server's `config.json` (see `mcp_servers/illinois_chat_server/example.config.json`). The ticket knowledge base server points at a JSON file produced by `ticket-ingest/` via `data_dir` or `data_file` in `mcp_servers/ticket_server/example.config.json`.

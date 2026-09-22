@@ -14,6 +14,7 @@ class SessionIngest(BaseModel):
     ended_at: str = Field(..., min_length=1)
     duration_sec: int = Field(..., ge=0)
     exit_code: int
+    version: str = Field(default="", description="hpc-gpt / OpenCode module version")
 
 
 def create_app(store: SessionStore) -> FastAPI:
@@ -38,6 +39,7 @@ def create_app(store: SessionStore) -> FastAPI:
                 ended_at=body.ended_at,
                 duration_sec=body.duration_sec,
                 exit_code=body.exit_code,
+                version=body.version,
             )
         except Exception as exc:
             raise HTTPException(status_code=500, detail=str(exc)) from exc
