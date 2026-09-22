@@ -1,0 +1,7 @@
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+pydantic>=2.0.0
+rich-argparse>=1.5.0
+pandas>=2.0.0
+matplotlib>=3.8.0
+python-dateutil>=2.8.0

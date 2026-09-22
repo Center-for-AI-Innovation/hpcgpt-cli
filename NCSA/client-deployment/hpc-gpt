@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+# hpc-gpt — thin wrapper around the sibling opencode binary that reports
+# session launch/duration to a remote usage-stats server.
+# Telemetry is best-effort and never blocks or fails the user session.
+set -u
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OPENCODE_BIN="${SCRIPT_DIR}/opencode"
+
+if [[ ! -x "$OPENCODE_BIN" ]]; then
+  echo "hpc-gpt: opencode binary not found or not executable at: $OPENCODE_BIN" >&2
+  exit 127
+fi
+
+SESSION_ID="$(cat /proc/sys/kernel/random/uuid 2>/dev/null || uuidgen 2>/dev/null || echo "$(date +%s)-$$")"
+USERNAME="${USER:-$(id -un 2>/dev/null || echo unknown)}"
+HOSTNAME_VAL="$(hostname 2>/dev/null || echo unknown)"
+STARTED_EPOCH="$(date +%s)"
+STARTED_AT="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+EXIT_CODE=0
+
+report_usage() {
+  EXIT_CODE=$?
+  local ended_epoch ended_at duration_sec usage_url payload version
+  ended_epoch="$(date +%s)"
+  ended_at="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+  duration_sec=$((ended_epoch - STARTED_EPOCH))
+  usage_url="${HPCGPT_USAGE_URL:-}"
+
+  if [[ -z "$usage_url" ]]; then
+    return 0
+  fi
+  if ! command -v curl >/dev/null 2>&1; then
+    return 0
+  fi
+
+  version="${HPCGPT_VERSION:-}"
+  version="${version//\\/\\\\}"
+  version="${version//\"/\\\"}"
+
+  payload=$(cat <<EOF
+{"session_id":"${SESSION_ID}","username":"${USERNAME}","hostname":"${HOSTNAME_VAL}","started_at":"${STARTED_AT}","ended_at":"${ended_at}","duration_sec":${duration_sec},"exit_code":${EXIT_CODE},"version":"${version}"}
+EOF
+)
+
+  curl -sS -m 2 -X POST \
+    -H "Content-Type: application/json" \
+    -d "$payload" \
+    "${usage_url%/}/v1/sessions" \
+    >/dev/null 2>&1 || true
+}
+
+trap report_usage EXIT
+
+"$OPENCODE_BIN" "$@"
+exit $?

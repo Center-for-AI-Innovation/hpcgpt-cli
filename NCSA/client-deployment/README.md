@@ -7,6 +7,7 @@ These are the instructions for deploying the hpcGPT OpenCode CLI on an HPC clust
 ```text
 client-deployment/
   installer.sh       # Site OpenCode installer
+  hpc-gpt            # Wrapper that launches opencode and reports usage
   module.lua         # Lmod/Environment Modules template
   opencode.jsonc     # Site config template (providers, MCP, prompts)
   tui.jsonc          # TUI config that loads site interface plugins
@@ -23,7 +24,8 @@ client-deployment/
 | File | Purpose |
 |------|---------|
 | `installer.sh` | Fork of the [official OpenCode installer](https://opencode.ai/install) with `--install-dir` and `--no-modify-path` |
-| `module.lua` | Lmod template that sets `PATH`, `OPENCODE_CONFIG`, and `NCSA_LLM_URL` |
+| `hpc-gpt` | Wrapper installed next to `opencode`; reports session duration to the usage-stats server |
+| `module.lua` | Lmod template that sets `PATH`, `OPENCODE_CONFIG`, `NCSA_LLM_URL`, and `HPCGPT_USAGE_URL` |
 | `opencode.jsonc` | Site config: provider, models, MCP server URLs, permissions, and prompt references |
 | `tui.jsonc` | Site TUI config loaded through `OPENCODE_TUI_CONFIG` |
 | `plugins/slurm-sidebar/` | Read-only sidebar that runs local Slurm commands only on user-requested refresh |
@@ -37,6 +39,7 @@ Delta uses `/sw/external/` for system software. After deployment, the install ro
 ```text
 /sw/external/opencode/
   bin/opencode
+  bin/hpc-gpt
   opencode.json
   tui.jsonc
   plugins/
@@ -72,6 +75,13 @@ Verify:
 
 ```bash
 /sw/external/opencode/bin/opencode --version
+```
+
+Install the usage wrapper next to the binary (users should run `hpc-gpt`):
+
+```bash
+cp hpc-gpt /sw/external/opencode/bin/hpc-gpt
+chmod 755 /sw/external/opencode/bin/hpc-gpt
 ```
 
 ### 2. Deploy site configuration and prompts
@@ -115,9 +125,16 @@ Update the template for your site:
 | `OPENCODE_TUI_CONFIG` | Path to the site TUI config (e.g. `/sw/external/opencode/tui.jsonc`) |
 | `NCSA_LLM_URL` | Base URL for your hosted OpenAI-compatible model endpoint |
 | `HPCGPT_FEEDBACK_EMAIL` | Site feedback recipient used by the TUI plugin |
+<<<<<<< HEAD
+| `HPCGPT_USAGE_URL` | Base URL for the usage-stats ingest server (e.g. `http://dt-hpcgpt:8005`) |
+| `HPCGPT_VERSION` | Module version string reported with usage stats (matches the modulefile `version`) |
+=======
 | `HPCGPT_FEEDBACK_FROM` | Authorized sender used by the TUI plugin |
+>>>>>>> 3125a4d8d90dafee5521204d37d76cb8c2268205
 
 The feedback plugin requires a working system `mail` command on the login nodes.
+
+Deploy and run the usage-stats server on your stats host (on Delta: `dt-hpcgpt:8005`). See [`../usage_stats_server/README.md`](../usage_stats_server/README.md).
 
 ## End user usage
 
@@ -125,10 +142,10 @@ After the site admin completes the steps above:
 
 ```bash
 module load hpc-gpt/1.15.13
-opencode
+hpc-gpt
 ```
 
-Loading the module sets `OPENCODE_CONFIG`, `OPENCODE_TUI_CONFIG`, `NCSA_LLM_URL`, `HPCGPT_FEEDBACK_EMAIL`, and `HPCGPT_FEEDBACK_FROM` automatically. Users do not need a personal install or config export.
+Loading the module sets `OPENCODE_CONFIG`, `OPENCODE_TUI_CONFIG`, `NCSA_LLM_URL`, `HPCGPT_FEEDBACK_EMAIL`, `HPCGPT_FEEDBACK_FROM`, `HPCGPT_USAGE_URL`, and `HPCGPT_VERSION` automatically. Users do not need a personal install or config export. `hpc-gpt` launches the site `opencode` binary and best-effort reports session duration to the usage-stats server.
 
 Run `/jobs` to enable the Slurm sidebar and load status once. Click `[Refresh]` or run `/jobs-refresh` for another update. The sidebar performs no background polling.
 
@@ -144,7 +161,7 @@ Debug mode is designed for shared-cluster etiquette: login nodes are for inspect
 
 1. Run `installer.sh` with the new `--version` (or latest if omitted).
 2. Update the modulefile version string and filename if you version modules per release.
-3. Re-test `opencode` and your site config against the new CLI.
+3. Re-test `hpc-gpt` (and `opencode`) and your site config against the new CLI.
 4. Review the [OpenCode release notes](https://github.com/anomalyco/opencode/releases) for breaking config changes.
 
 ## Per-user install (development)

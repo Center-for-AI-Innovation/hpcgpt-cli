@@ -8,7 +8,7 @@ Delta HPC-GPT OpenCode AI coding agent CLI
 Usage:
   module load hpc-gpt/]] .. version .. [[
 
-  opencode
+  hpc-gpt
 
 Documentation: https://opencode.ai/docs
 ]])
@@ -22,8 +22,10 @@ prepend_path("PATH", pathJoin(root, "bin"))
 setenv("OPENCODE_CONFIG", pathJoin(root, "delta-opencode.jsonc")) -- Set this to your own config file
 setenv("OPENCODE_TUI_CONFIG", pathJoin(root, "tui.jsonc"))
 setenv("NCSA_LLM_URL", "https://example.endpoint/v1") -- Set this to your own hosted model URL
-setenv("HPCGPT_FEEDBACK_EMAIL", "feedback@example.edu") -- Set in the deployed modulefile
-setenv("HPCGPT_FEEDBACK_FROM", "noreply@example.edu") -- Set in the deployed modulefile
+setenv("HPCGPT_FEEDBACK_EMAIL", "feedback@example.edu") -- Set to site's feedback emailaddress
+setenv("HPCGPT_FEEDBACK_FROM", "noreply@example.edu") -- Set to email you want feedback to be sent from
+setenv("HPCGPT_USAGE_URL", "http://dt-hpcgpt:8005") -- Address to send usage stats to; Should be where your usage-stats server is running
+setenv("HPCGPT_VERSION", version) -- Module/OpenCode version reported with usage stats
 
 if (mode() == "load") then
   -- LmodMsgRaw avoids LmodMessage's line-wrapping ("Fill"), which distorts ASCII art.
@@ -34,7 +36,7 @@ if (mode() == "load") then
     "|  |  | -_| |  _| .'|  |     | . |  _|___| . | . |  _|   ",
     "|____/|___|_|_| |__,|  |__|__|  _|___|   |_  |  _|_|     ",
     "                             |_|         |___|_|         ",
-    "       use `opencode` to get started chatting",
+    "       use `hpc-gpt` to get started chatting",
     "",
   }, "\n")
   LmodMsgRaw(banner)
