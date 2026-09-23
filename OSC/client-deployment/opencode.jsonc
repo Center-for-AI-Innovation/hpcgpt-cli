@@ -76,6 +76,12 @@
             "output": 8192
           }
         },
+        "claude-opus-5": {
+          "name": "Claude Opus 5",
+          "options": {
+            "stream": true
+          },
+        },
         "qwen3-coder-next": {
           "name": "Qwen 3 Coder Next",
           "options": {
