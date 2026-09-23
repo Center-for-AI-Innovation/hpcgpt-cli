@@ -35,7 +35,7 @@ Set `NCSA_LLM_URL` and any MCP server credentials before starting (see Environme
 - **Support mode** — Delta-specific assistant for documentation, Slurm status, support guidance, and escalation (`client-deployment/prompts/support.txt`).
 - **Debug mode** — Delta-aware coding and runtime debugger for project files, environments, Slurm jobs, CUDA/GPU issues, and small safe validation (`client-deployment/prompts/debug.txt`).
 - **Learning mode** — TA-style coding help that explains concepts, asks focused questions, diagnoses mechanical mistakes, and preserves student ownership of assignment algorithms (`client-deployment/prompts/learning.txt`).
-- **Slurm integration (MCP)** — `accounts`, `sinfo`, `squeue`, and `scontrol` via `slurm-mcp-server`.
+- **Slurm integration (MCP)** — cluster commands such as `sinfo`, `squeue`, `scontrol`, `accounts`, and `jobcharge` via `slurm-mcp-server`; the command list is configurable.
 - **Slurm sidebar** — opt-in, manually refreshed, no-LLM display of active and recently completed jobs.
 - **Docs Q&A (MCP)** — Illinois Chat tools `query_delta_documentation`, `query_delta_ai_documentation`, and `query_hpcgpt_cuda_docs`.
 - **Support reporting (MCP)** — `send_support_report` via `report-server`; users can also run the `/report` command.
@@ -122,7 +122,7 @@ Each MCP server has its own README with setup and configuration details.
 
 | Server | Tools | Purpose |
 |--------|-------|---------|
-| `slurm-mcp-server` | `accounts`, `sinfo`, `squeue`, `scontrol` | Query accounts, partitions, jobs, and job details |
+| `slurm-mcp-server` | One tool per command in its `commands` config (default `sinfo`, `squeue`, `scontrol`, `accounts`, `jobcharge`) | Query partitions, jobs, job details, accounts, and allocation charges |
 | `illinois-chat-server` | `query_delta_documentation`, `query_delta_ai_documentation` | Answer questions from Delta and Delta AI docs |
 | `report-server` | `send_support_report` | Create Jira support issues with conversation history and host/user context |
 | `knowledge-base-server` | `search_tickets`, `get_ticket`, `list_clusters`, `get_cluster`, `stats` | bm25 search over processed support-ticket Q&A pairs |

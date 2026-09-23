@@ -1,5 +1,14 @@
 {
     "host": "127.0.0.1",
     "port": 8001,
-    "log_file": "logs/Latest.log"
+    "log_file": "logs/Latest.log",
+    "command_timeout": 30,
+    "max_help_chars": 4000,
+    "commands": [
+        "sinfo",
+        "squeue",
+        "scontrol",
+        "accounts",
+        "jobcharge"
+    ]
 }
