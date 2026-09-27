@@ -1,4 +1,5 @@
-llmflux
+llmflux==2.0.0
 pandas
 pydantic
+rich
 rich-argparse

@@ -57,7 +57,7 @@ def submit_llmflux_job(input_file: str, output_file: str, my_slurm_config: Slurm
     slurm_config.account = my_slurm_config.account
     slurm_config.partition = my_slurm_config.partition
     slurm_config.time = my_slurm_config.time
-    slurm_config.mem = my_slurm_config.mem
+    slurm_config.memory = my_slurm_config.mem
     slurm_config.gpus_per_node = my_slurm_config.gpus_per_node
     slurm_config.nodes = my_slurm_config.nodes
     slurm_config.cpus_per_task = my_slurm_config.cpus_per_task
