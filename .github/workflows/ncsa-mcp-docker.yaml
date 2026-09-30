@@ -1,0 +1,120 @@
+name: Build and Push NCSA MCP Images
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "NCSA/mcp_servers/**"
+      - ".github/workflows/ncsa-mcp-docker.yaml"
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build-test-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: slurm
+            context: NCSA/mcp_servers/slurm_server
+            image_suffix: ncsa_slurm_mcp
+            port: "8001"
+            smoke: slurm
+          - id: illinois_chat
+            context: NCSA/mcp_servers/illinois_chat_server
+            image_suffix: ncsa_illinois_chat_mcp
+            port: "8002"
+            smoke: illinois_chat
+          - id: report
+            context: NCSA/mcp_servers/report_server
+            image_suffix: ncsa_report_mcp
+            port: "8003"
+            smoke: report
+          - id: ticket
+            context: NCSA/mcp_servers/ticket_server
+            image_suffix: ncsa_ticket_mcp
+            port: "8004"
+            smoke: ticket
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Derive image names and tags
+        id: meta
+        run: |
+          OWNER='${{ github.repository_owner }}'
+          OWNER_LOWER="${OWNER,,}"
+          VERSION="$(tr -d '[:space:]' < '${{ matrix.context }}/VERSION.txt')"
+          SHORT_SHA="$(echo '${{ github.sha }}' | cut -c1-7)"
+          IMAGE="${{ env.REGISTRY }}/${OWNER_LOWER}/${{ matrix.image_suffix }}"
+          {
+            echo "owner_lower=${OWNER_LOWER}"
+            echo "version=${VERSION}"
+            echo "short_sha=${SHORT_SHA}"
+            echo "image=${IMAGE}"
+            echo "tag_version=${IMAGE}:${VERSION}"
+            echo "tag_sha=${IMAGE}:sha-${SHORT_SHA}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Check if version tag exists
+        id: check-tag
+        run: |
+          IMAGE_TAG="${{ steps.meta.outputs.tag_version }}"
+          if docker manifest inspect "$IMAGE_TAG" > /dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Tag $IMAGE_TAG already exists."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "Tag $IMAGE_TAG does not exist."
+          fi
+
+      - name: Build image for smoke test
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          load: true
+          tags: ncsa-mcp-smoke:${{ matrix.id }}
+          cache-from: type=gha,scope=${{ matrix.id }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.id }}
+
+      - name: Smoke test
+        env:
+          SMOKE_ID: ${{ matrix.smoke }}
+          SMOKE_PORT: ${{ matrix.port }}
+          IMAGE: ncsa-mcp-smoke:${{ matrix.id }}
+        run: bash NCSA/mcp_servers/ci/smoke-test.sh
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tag_sha }}
+          cache-from: type=gha,scope=${{ matrix.id }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.id }}
+
+      - name: Push version tag
+        if: steps.check-tag.outputs.exists != 'true'
+        run: |
+          docker buildx imagetools create \
+            --tag "${{ steps.meta.outputs.tag_version }}" \
+            "${{ steps.meta.outputs.tag_sha }}"
