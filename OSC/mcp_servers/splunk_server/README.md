@@ -87,7 +87,6 @@ splunk_server/
 │   ├── __init__.py
 │   ├── config.py          # Pydantic config loading
 │   └── logging.py         # File logging and FastMCP log routing
-├── splunk_search_example/ # Original Splunk scripts (reference)
 └── logs/                  # Typical location for log_file (optional)
 ```
 
