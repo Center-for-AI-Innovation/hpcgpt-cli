@@ -1,0 +1,16 @@
+{
+    "host": "0.0.0.0",
+    "port": 8002,
+    "log_file": "/tmp/Latest.log",
+    "illinois_chat_url": "",
+    "illinois_chat_api_key": "",
+    "illinois_chat_model": "Qwen/Qwen3.6-27B",
+    "illinois_chat_system_prompt": "You are a helpful assistant for Delta and Delta AI documentation.",
+    "illinois_chat_timeout": 30,
+    "courses": [
+        {
+            "name": "Delta-Documentation",
+            "description": "Query general Delta / HPC documentation."
+        }
+    ]
+}

@@ -1,0 +1,9 @@
+{
+    "host": "0.0.0.0",
+    "port": 8004,
+    "log_file": "/tmp/Latest.log",
+    "log_level": "INFO",
+    "data_dir": "/data",
+    "data_file": "/data/clustered.json",
+    "db_path": ":memory:"
+}
