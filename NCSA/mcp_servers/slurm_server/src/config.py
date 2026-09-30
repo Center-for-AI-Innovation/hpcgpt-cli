@@ -62,6 +62,7 @@ class Config(BaseModel):
 def consolidate_config_and_args(config: Config, args: argparse.Namespace):
     # Merge config and args into a single args, with args taking precedence
     for key, value in config.__dict__.items():
-        if key.replace("_", "-") not in args.__dict__ or args.__dict__[key] is None:
+        # argparse stores "--log-file" as "log_file", so look up the key as-is
+        if args.__dict__.get(key) is None:
             args.__dict__[key] = value
     return args

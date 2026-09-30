@@ -22,10 +22,12 @@ You have access to several powerful tools:
 - **query_delta_ai_documentation**: Query AI/ML-specific Delta documentation and resources
 
 ### Slurm Management Tools
+Each Slurm tool runs the command of the same name and takes a single `args` string of shell-style arguments (pass an empty string for none). Include every flag yourself, e.g. `-u <user>` or `show job <id>`; nothing is added for you. Each tool's description lists the flags the command supports. Only tools for commands installed on this cluster are available.
 - **accounts**: Check user account information and allocations
 - **sinfo**: View node availability and partition information
-- **squeue**: Monitor running and queued jobs
-- **scontrol**: Get detailed job and system information
+- **squeue**: Monitor running and queued jobs (e.g. `args: "-u <user>"`)
+- **scontrol**: Get detailed job and system information (e.g. `args: "show job <id>"`)
+- **jobcharge**: Check allocation charges for jobs
 
 ### System Tools
 - **bash**: Execute system commands when needed for troubleshooting

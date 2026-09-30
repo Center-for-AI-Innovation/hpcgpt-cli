@@ -40,6 +40,9 @@ class SlurmMCP(FastMCP):
             try:
                 self._register_command_tool(command)
                 registered_tools += 1
+            except FileNotFoundError as exc:
+                logging.warning("Skipping command %s: %s", command.name, exc)
+                continue
             except Exception as exc:
                 logging.error(
                     "Failed to register tool for command %s: %s", command.name, exc

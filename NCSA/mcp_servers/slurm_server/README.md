@@ -10,7 +10,7 @@ Tools are **generated from the `commands` list in `config.json`** — one tool p
 
 At startup, for each configured command the server:
 
-1. Looks the command up on `PATH`. If it is not there, the command is **skipped** and the failure is logged.
+1. Looks the command up on `PATH`. If it is not there, the command is **skipped** and a warning is logged. Any other registration error is logged as an error, and startup continues with the remaining commands.
 2. Runs `<command> --help` (falling back to `-h`) and uses that output — the usage line and the list of flags — as the tool description, so the model sees the same flags the command actually supports.
 3. Logs the registration, and logs a summary of how many of the configured commands were registered.
 
