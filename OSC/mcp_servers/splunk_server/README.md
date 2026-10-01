@@ -12,6 +12,7 @@ Clients connect via **stdio** (default) or **Streamable HTTP** (`-t streamable-h
 | `reframe_apptests` | Query Reframe application test results from Splunk. |
 | `reframe_perflogs` | Analyze Reframe performance logs from Splunk. |
 | `lmod_module_usage` | Report Lmod module usage statistics from Splunk. |
+| `software_install_report` | Generate a report of software installations from Splunk logs. |
 
 Each tool supports time range filtering via `earliest`, `latest`, or `days` parameters. Returned data is formatted as text or JSON depending on the tool.
 
@@ -110,6 +111,11 @@ Analyze Reframe performance metrics (runtime, memory, etc.) with filters.
 ### lmod_module_usage
 ```
 Report Lmod module load statistics by module name, user, or time period.
+```
+
+### software_install_report
+```
+Report software installations (install-script, spack-install) by system and package. Default: last 14 days.
 ```
 
 ## Troubleshooting

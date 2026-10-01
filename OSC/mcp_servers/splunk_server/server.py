@@ -29,6 +29,7 @@ class SplunkMCP(FastMCP):
         self.add_tool(self.reframe_apptests)
         self.add_tool(self.reframe_perflogs)
         self.add_tool(self.lmod_module_usage)
+        self.add_tool(self.software_install_report)
 
     def _get_splunk_service(self) -> client.Service:
         """
@@ -499,6 +500,103 @@ class SplunkMCP(FastMCP):
             return debug_info + df.to_string()
         except Exception as e:
             return f"Error retrieving Lmod module usage stats: {str(e)}"
+
+async def software_install_report(
+        self,
+        system: str = "*",
+        package: str = "*",
+        days: Optional[int] = 14
+    ) -> str:
+        """
+        Generate a report for software installations from Splunk logs.
+
+        Args:
+            system: Filter by system/host name prefix (e.g., "pitzer", "cardinal"). Default: *
+            package: Filter by package name (glob patterns supported). Default: *
+            days: Search the last N days. Default: 14
+
+        Returns:
+            Software installation records in table format.
+        """
+        import re
+        
+        INSTALL_PATTERN = re.compile(
+            r'system=(\S+)\s+package=(\S+)\s+version=(\S+)\s+dep=\'?(\S+)\'?\s+status=(\S+)'
+        )
+
+        def parse_event(event: dict) -> Optional[dict]:
+            """Parse installation event fields from Splunk result."""
+            raw = event.get('_raw', '')
+            match = INSTALL_PATTERN.search(raw)
+            if not match:
+                return None
+            
+            sys_name, pkg, ver, dep, status = match.groups()
+            
+            # Normalize system name
+            for pattern, replacement in [
+                ('pitzer.*', 'pitzer'),
+                ('ascend.*', 'ascend'),
+                ('cardinal.*', 'cardinal')
+            ]:
+                sys_name = re.sub(pattern, replacement, sys_name)
+            
+            return {
+                'system': sys_name,
+                'package': pkg,
+                'version': ver,
+                'dep': dep[:100] if len(dep) > 100 else dep,
+                'status': status,
+            }
+
+        try:
+            earliest_time, latest_time = self._parse_time_range("-7d@d", "now", days)
+            service = self._get_splunk_service()
+
+            search = f"search (process=install-script OR process=*spack-install) host={system}*"
+
+            search_result = service.jobs.oneshot(
+                search,
+                earliest_time=earliest_time,
+                latest_time=latest_time,
+                output_mode='json'
+            )
+            data = results.JSONResultsReader(search_result)
+            
+            records = []
+            for event in data:
+                if isinstance(event, dict):
+                    parsed = parse_event(event)
+                    if parsed:
+                        records.append(parsed)
+
+            if not records:
+                return "No software installations found."
+
+            df = pd.DataFrame(records)
+            
+            # Deduplicate by system, package, version, dep
+            df = df.drop_duplicates(subset=['system', 'package', 'version', 'dep'])
+            
+            # Aggregate by system
+            aggregated = df.groupby('system').agg({
+                'package': lambda x: list(x),
+                'version': lambda x: list(x),
+                'dep': lambda x: list(x),
+                'status': lambda x: list(x)
+            }).reset_index()
+            
+            # Filter by package if specified
+            if package != "*":
+                mask = aggregated['package'].apply(
+                    lambda x: any(package in str(p) for p in x) if isinstance(x, list) else package in str(x)
+                )
+                aggregated = aggregated[mask]
+
+            pd.set_option("max_colwidth", 200)
+            return aggregated.to_string()
+        except Exception as e:
+            return f"Error retrieving software installation report: {str(e)}"
 
 
 def parse_command_line() -> argparse.Namespace:
