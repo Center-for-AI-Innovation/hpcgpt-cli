@@ -501,7 +501,7 @@ class SplunkMCP(FastMCP):
         except Exception as e:
             return f"Error retrieving Lmod module usage stats: {str(e)}"
 
-async def software_install_report(
+    async def software_install_report(
         self,
         system: str = "*",
         package: str = "*",
