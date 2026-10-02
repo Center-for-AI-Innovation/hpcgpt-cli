@@ -15,6 +15,24 @@
         "edit": true,
         "bash": true
       }
+    },
+    "learning": {
+      "model": "oschosted/qwen35-122b-fp8",
+      "prompt": "{file:./prompts/learning.txt}",
+      "tools": {
+        "write": true,
+        "edit": true,
+        "bash": true
+      }
+    },
+    "debug": {
+      "model": "oschosted/qwen35-122b-fp8",
+      "prompt": "{file:./prompts/debug.txt}",
+      "tools": {
+        "write": true,
+        "edit": true,
+        "bash": true
+      }
     }
   },
   "provider": {
