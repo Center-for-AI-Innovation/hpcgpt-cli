@@ -47,6 +47,27 @@
           "task": "deny",
           "external_directory": "ask"
         }
+      },
+      "debug": {
+        "model": "lumen/qwen3.8-27b",
+        "prompt": "{file:./prompts/debug.txt}",
+        "tools": {
+          "read": true,
+          "list": true,
+          "glob": true,
+          "grep": true,
+          "write": true,
+          "edit": true,
+          "bash": true
+        },
+        "permission": {
+          "read": "allow",
+          "list": "allow",
+          "glob": "allow",
+          "grep": "allow",
+          "edit": "ask",
+          "bash": "ask"
+        }
       }
     },
     "provider": {
