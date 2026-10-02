@@ -1,0 +1,86 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agent": {
+    "build": {
+      "disable": true
+    },
+    "plan": {
+      "disable": true
+    },
+    "hpcgpt": {
+      "disable": false
+    },
+  },
+  "autoupdate": false,
+  "default_agent": "hpcgpt",
+  "enabled_providers": ["triton-ai"],
+  "experimental": {},
+  "model": "triton-ai/api-gemma-4-31b",
+  "provider": {
+    "nrp": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "National Research Platform (NRP)",
+      "options": {
+        "baseURL": "https://ellm.nrp-nautilus.io/v1",
+        "apiKey": "{env:NRP_LLM_API_KEY}"
+      },
+      "models": {
+        "gemma": {
+          "name": "gemma-4-31b-it-qat-w4a16-ct"
+        },
+        "gemma-small": {
+          "name": "gemma-4-12B-it-qat-w4a16-ct"
+        },
+        "glm-5": {
+          "name": "glm-5.2-nvfp4"
+        },
+        "gpt-oss": {
+          "name": "gpt-oss-120b"
+        },
+        "kimi": {
+          "name": "kimi-k2.7-code"
+        },
+        "minimax-m2": {
+          "name": "minimax-m2.7"
+        },
+        "qwen3": {
+          "name": "qwen3.5-397b-a17b-fp8"
+        },
+        "qwen3-small": {
+          "name": "qwen3.6-27b"
+        },
+      },
+    },
+    "triton-ai": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Triton AI",
+      "options": {
+        "baseURL": "https://tritonai-api.ucsd.edu",
+        "apiKey": "{env:TRITON_AI_API_KEY}"
+      },
+      "models": {
+        "api-deepseek-v4-flash": {
+          "name": "deepseek-v4-flash"
+        },
+        "api-gemma-4-31b": {
+          "name": "gemma-4-31b"
+        },
+        "api-glm-5.2": {
+          "name": "glm-5.2"
+        },
+        "api-gpt-oss-120b": {
+          "name": "gpt-oss-120b"
+        },
+      },
+    },
+  },
+  "share": "disabled",
+  "snapshot": true,
+  "mcp": {
+    "chat": {
+        "type": "remote", 
+        "url": "http://127.0.0.1:8001/mcp",
+        "enabled": true
+    },
+  },
+}

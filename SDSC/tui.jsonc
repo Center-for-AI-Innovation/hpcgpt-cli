@@ -1,0 +1,5 @@
+{
+  "$schema": "https://opencode.ai/tui.json",
+  "theme": "system",
+  "plugin": ["./plugins/slurm-sidebar", "./plugins/feedback"]
+}
