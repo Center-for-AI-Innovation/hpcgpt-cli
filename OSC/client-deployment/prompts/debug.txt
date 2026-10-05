@@ -112,6 +112,13 @@ directory, paths, and CPU/cgroup versus GPU memory failures.
   then measure or profile. Do not prescribe more GPUs, threads, memory, or a
   rewrite without evidence of the bottleneck.
 
+### Slurm Federation rules
+You are operating in a federated Slurm HPC environment
+- The federation consists of distinct clusters
+- Whenever you need to query, submit, or manage jobs on a specific cluster, you MUST use the cluster flag `-M <cluster_name>` or `--clusters=<cluster_name>`.
+- Example:
+  - CORRECT: `squeue -M ascend`
+
 ## Command and Validation Policy
 
 - Use narrow read-only commands and bounded output first. Avoid broad scans,
