@@ -2,6 +2,7 @@
   "$schema": "https://opencode.ai/config.json",
   "autoupdate": false,
   "enabled_providers": ["oschosted"],
+  "default_agent": "support",
   "agent": {
     "build": { "disable": true },
     "plan": { "disable": true },
@@ -14,24 +15,71 @@
         "write": true,
         "edit": true,
         "bash": true
-      }
-    },
-    "learning": {
-      "model": "oschosted/qwen35-122b-fp8",
-      "prompt": "{file:./prompts/learning.txt}",
-      "tools": {
-        "write": true,
-        "edit": true,
-        "bash": true
+      },
+      "permission": {
+        "edit": "ask",
+        "bash": "ask"
       }
     },
     "debug": {
       "model": "oschosted/qwen35-122b-fp8",
-      "prompt": "{file:./prompts/debug.txt}",
+      "prompt": "{file:./prompts/learning.txt}",
       "tools": {
+        "read": true,
+        "list": true,
+        "glob": true,
+        "grep": true,
         "write": true,
         "edit": true,
         "bash": true
+      },
+      "permission": {
+        "read": "allow",
+        "list": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "edit": "ask",
+        "bash": "ask"
+      }
+    },
+    "learning": {
+      "model": "oschosted/qwen35-122b-fp8",
+      "prompt": "{file:./prompts/debug.txt}",
+      "tools": {
+        "read": true,
+        "list": true,
+        "glob": true,
+        "grep": true,
+        "write": true,
+        "edit": true,
+        "bash": true
+      },
+      "permission": {
+        "read": "allow",
+        "list": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "edit": "ask",
+        "bash": {
+          "*": "ask",
+          "pwd": "allow",
+          "ls *": "allow",
+          "find *": "allow",
+          "grep *": "allow",
+          "make -n*": "allow",
+          "bash -n *": "allow",
+          "git status*": "allow",
+          "git diff*": "allow",
+          "rm *": "deny",
+          "rm -r *": "deny",
+          "rm -rf *": "deny",
+          "sbatch *": "ask",
+          "srun *": "ask",
+          "salloc *": "ask",
+          "scancel *": "ask"
+        },
+        "task": "deny",
+        "external_directory": "ask"
       }
     }
   },
