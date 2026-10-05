@@ -106,34 +106,34 @@
           "deepseek-v4-flash": {
             "name": "deepseek-v4-flash",
             "limit": {
-              "context": 1048570,
-              "output": 384000
+              "context": 511994,
+              "output": 128000
             },
             "cost": {
-              "input": 0.14025,
-              "output": 0.290945
+              "input": 0.161857,
+              "output": 0.37146
             }
           },
-          "gemma-4-31b-it": {
-            "name": "gemma-4-31b-it",
+          "gemma-4-31b": {
+            "name": "gemma-4-31b",
             "limit": {
-              "context": 68192,
+              "context": 46790,
+              "output": 32768
+            },
+            "cost": {
+              "input": 0.167931,
+              "output": 0.436103
+            }
+          },
+          "glm-5.3": {
+            "name": "glm-5.3",
+            "limit": {
+              "context": 524282,
               "output": 131072
             },
             "cost": {
-              "input": 0.17404,
-              "output": 0.43664
-            }
-          },
-          "glm-5.3-flash": {
-            "name": "glm-5.3-flash",
-            "limit": {
-              "context": 1048576,
-              "output": 131072
-            },
-            "cost": {
-              "input": 0.1402,
-              "output": 0.4542
+              "input": 1.321413,
+              "output": 4.248318
             }
           },
           "muse-glimmer-30b": {
@@ -143,19 +143,19 @@
               "output": 131072
             },
             "cost": {
-              "input": 0.35,
-              "output": 1.5
+              "input": 0.322727,
+              "output": 1.345455
             }
           },
-          "nemotron-3-super-120b-a12b": {
-            "name": "nemotron-3-super-120b-a12b",
+          "nemotron-3-super-120b": {
+            "name": "nemotron-3-super-120b",
             "limit": {
               "context": 262144,
-              "output": 16384
+              "output": 262144
             },
             "cost": {
-              "input": 0.160667,
-              "output": 0.788778
+              "input": 0.168636,
+              "output": 0.759091
             }
           },
           "ornith-1.0-35b": {
@@ -173,33 +173,33 @@
             "name": "qwen3-coder-next",
             "limit": {
               "context": 131066,
-              "output": 65536
+              "output": 256000
             },
             "cost": {
-              "input": 0.2046,
-              "output": 1.1465
+              "input": 0.226538,
+              "output": 1.235846
             }
           },
-          "qwen3.6-35b-a3b": {
-            "name": "qwen3.6-35b-a3b",
+          "qwen3.6-35b": {
+            "name": "qwen3.6-35b",
             "limit": {
               "context": 262138,
-              "output": 16384
+              "output": 131056
             },
             "cost": {
-              "input": 0.192306,
-              "output": 1.162368
+              "input": 0.185435,
+              "output": 1.138217
             }
           },
           "qwen3.8-27b": {
             "name": "qwen3.8-27b",
             "limit": {
               "context": 250542,
-              "output": 250542
+              "output": 262144
             },
             "cost": {
-              "input": 0.192306,
-              "output": 1.162368
+              "input": 0.364571,
+              "output": 2.3965
             }
           },
           "qwen3.8-flash": {
