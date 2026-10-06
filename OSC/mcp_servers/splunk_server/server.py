@@ -138,29 +138,81 @@ class SplunkMCP(FastMCP):
         Returns:
             Reframe test results in table, JSON, or CSV format.
         """
+        import re
+
+        def parse_event(event: dict) -> Optional[dict]:
+            """Parse Reframe test event fields from Splunk result."""
+            raw = event.get('_raw', '')
+            if 'package=' not in raw:
+                return None
+
+            entry = {'system': event.get('system', '')}
+
+            # Extract system from host if not set
+            if not entry['system'] and 'host' in event:
+                entry['system'] = re.sub(r'-.*', '', event['host'])
+
+            # Extract fields
+            for field in ['package', 'version', 'date']:
+                m = re.search(rf'{field}=(\S+)', raw)
+                entry[field] = m.group(1) if m else ''
+
+            # failed_tests can be quoted with spaces
+            m = re.search(r"failed_tests='([^']*)'", raw)
+            if m:
+                entry['failed_tests'] = m.group(1)
+            else:
+                m = re.search(r"failed_tests=(\S+)", raw)
+                entry['failed_tests'] = m.group(1) if m else ''
+
+            # deps can be quoted
+            m = re.search(r"deps=('?)([^'\s]+(?:\s+[^'\s]+)*)(\1)", raw)
+            if m:
+                entry['deps'] = m.group(2).strip()
+            else:
+                entry['deps'] = ''
+
+            # status can be quoted or unquoted
+            m = re.search(r"status=('?)([^'\s]+(?:\s+[^'\s]+)*)(\1)", raw)
+            if m:
+                entry['status'] = m.group(2).strip()
+            else:
+                entry['status'] = ''
+
+            return entry
+
         try:
             earliest_time, latest_time = self._parse_time_range(earliest, latest, days)
             service = self._get_splunk_service()
 
-            search_parts = [
-                f"search (process=reframe_apptest OR reframe_regression_test) host={system}*",
-                "eval system=replace(host,\"-.*\", \"\")",
-                "dedup system package version deps sortby -_time",
-                "sort +system +package +version +deps",
-                "where NOT remove=\"yes\"",
-                "table system package version deps status failed_tests date",
-                "rename deps as dependencies failed_tests as \"failed tests\"",
-                "sort status"
-            ]
+            # Minimal Splunk search - just fetch raw events
+            search = f"search (process=reframe_apptest OR reframe_regression_test) host={system}*"
             
             search_result = service.jobs.oneshot(
-                "|".join(search_parts),
+                search,
                 earliest_time=earliest_time,
                 latest_time=latest_time,
                 output_mode='json'
             )
             data = results.JSONResultsReader(search_result)
-            df = pd.DataFrame(data)
+
+            records = []
+            for event in data:
+                if isinstance(event, dict):
+                    parsed = parse_event(event)
+                    if parsed:
+                        records.append(parsed)
+
+            if not records:
+                return "No Reframe test results found."
+
+            df = pd.DataFrame(records)
+            df = df.rename(columns={'deps': 'dependencies', 'failed_tests': 'failed tests'})
+            df = df[['system', 'package', 'version', 'dependencies', 'status', 'failed tests', 'date']]
+
+            # Deduplicate and sort
+            df = df.drop_duplicates(subset=['system', 'package', 'version', 'dependencies'], keep='first')
+            df = df.sort_values(['status', 'system', 'package', 'version', 'dependencies'])
             
             if status:
                 df = df[df["status"] == status]
@@ -172,7 +224,7 @@ class SplunkMCP(FastMCP):
             if csv_output:
                 return df.to_csv(index=False)
 
-            return df.to_string()
+            return df.to_string(index=False)
         except Exception as e:
             return f"Error retrieving Reframe test results: {str(e)}"
 
