@@ -4,6 +4,22 @@
     "log_file": "logs/Latest.log",
     "illinois_chat_url": "https://my.chat/api",
     "illinois_chat_api_key": "my_api_key",
-    "illinois_chat_model": "Qwen/Qwen2.5-VL-72B-Instruct",
-    "illinois_chat_system_prompt": "You are a helpful assistant that can answer questions about the Delta and Delta AI documentation. You are also able to answer questions about the Delta and Delta AI software."
+    "illinois_chat_model": "Qwen/Qwen3.6-27B",
+    "illinois_chat_system_prompt": "You are a helpful assistant that can answer questions about the Delta and Delta AI documentation. You are also able to answer questions about the Delta and Delta AI software.",
+    "illinois_chat_timeout": 30,
+    "courses": [
+        {
+            "name": "Delta-Documentation",
+            "description": "Query general Delta / HPC documentation. Use for questions about Delta login, storage, accounts, modules, batch jobs, and system policies."
+        },
+        {
+            "name": "DeltaAI-Documentation",
+            "description": "Query Delta AI documentation. Use for questions about DeltaAI GPUs, AI/ML software stacks, and DeltaAI-specific resources."
+        },
+        {
+            "name": "hpcgpt-CUDA_DOCS",
+            "description": "Query CUDA documentation. Use for questions about CUDA APIs, programming models, and GPU programming concepts.",
+            "model": "gpt-oss:20b"
+        }
+    ]
 }

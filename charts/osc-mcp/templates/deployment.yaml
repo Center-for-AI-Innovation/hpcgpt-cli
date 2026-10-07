@@ -1,0 +1,74 @@
+{{- if .Values.osc_chat.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "osc-mcp.fullname" . }}
+  labels:
+    {{- include "osc-mcp.labels" . | nindent 4 }}
+    receiver: '{{ index .Values.global.alert.receiver }}'
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "osc-mcp.osc_chat.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "osc-mcp.osc_chat.selectorLabels" . | nindent 8 }}
+        receiver: '{{ index .Values.global.alert.receiver }}'
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- tpl (toYaml .) $ | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "osc-mcp.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- if .Values.extraInitContainers }}
+      initContainers:
+        {{- tpl (toYaml .Values.extraInitContainers) $ | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: osc-chat
+          image: {{ include "osc-mcp.image" (dict "imageRoot" .Values.osc_chat.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.osc_chat.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.osc_chat.port }}
+              protocol: TCP
+          env:
+            - name: PORT
+              value: {{ .Values.osc_chat.port | quote }}
+            - name: CHAT_URL
+              value: {{ tpl .Values.osc_chat.chatEndpoint $ }}
+            - name: API_KEY
+              value: {{ .Values.osc_chat.apiKey | quote }}
+            - name: MODEL_NAME
+              value: {{ .Values.osc_chat.model | quote }}
+#          livenessProbe:
+#            httpGet:
+#              path: /health
+#              port: http
+#            initialDelaySeconds: 30
+#            periodSeconds: 10
+#          readinessProbe:
+#            httpGet:
+#              path: /health
+#              port: http
+#            initialDelaySeconds: 5
+#            periodSeconds: 5
+          resources:
+            {{- toYaml .Values.osc_chat.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

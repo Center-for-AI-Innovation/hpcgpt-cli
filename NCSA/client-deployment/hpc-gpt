@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# hpc-gpt — thin wrapper around the sibling opencode binary that reports
+# session launch/duration to a remote usage-stats server.
+# Telemetry is best-effort and never blocks or fails the user session.
+set -u
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OPENCODE_BIN="${SCRIPT_DIR}/opencode"
+
+if [[ ! -x "$OPENCODE_BIN" ]]; then
+  echo "hpc-gpt: opencode binary not found or not executable at: $OPENCODE_BIN" >&2
+  exit 127
+fi
+
+SESSION_ID="$(cat /proc/sys/kernel/random/uuid 2>/dev/null || uuidgen 2>/dev/null || echo "$(date +%s)-$$")"
+USERNAME="${USER:-$(id -un 2>/dev/null || echo unknown)}"
+HOSTNAME_VAL="$(hostname 2>/dev/null || echo unknown)"
+STARTED_EPOCH="$(date +%s)"
+STARTED_AT="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+EXIT_CODE=0
+
+json_escape() {
+  local value="$1"
+  value="${value//\\/\\\\}"
+  value="${value//\"/\\\"}"
+  printf '%s' "$value"
+}
+
+post_usage() {
+  local ended_at_json="$1"
+  local duration_json="$2"
+  local exit_code_json="$3"
+  local usage_url version payload
+
+  usage_url="${HPCGPT_USAGE_URL:-}"
+  if [[ -z "$usage_url" ]]; then
+    return 0
+  fi
+  if ! command -v curl >/dev/null 2>&1; then
+    return 0
+  fi
+
+  version="$(json_escape "${HPCGPT_VERSION:-}")"
+
+  payload=$(cat <<EOF
+{"session_id":"${SESSION_ID}","username":"$(json_escape "${USERNAME}")","hostname":"$(json_escape "${HOSTNAME_VAL}")","started_at":"${STARTED_AT}","ended_at":${ended_at_json},"duration_sec":${duration_json},"exit_code":${exit_code_json},"version":"${version}"}
+EOF
+)
+
+  curl -sS -m 2 -X POST \
+    -H "Content-Type: application/json" \
+    -d "$payload" \
+    "${usage_url%/}/v1/sessions" \
+    >/dev/null 2>&1 || true
+}
+
+report_session_start() {
+  post_usage "null" "null" "null"
+}
+
+report_session_end() {
+  EXIT_CODE=$?
+  local ended_epoch ended_at duration_sec
+  ended_epoch="$(date +%s)"
+  ended_at="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+  duration_sec=$((ended_epoch - STARTED_EPOCH))
+  post_usage "\"${ended_at}\"" "${duration_sec}" "${EXIT_CODE}"
+}
+
+trap report_session_end EXIT
+
+report_session_start
+"$OPENCODE_BIN" "$@"
+exit $?
