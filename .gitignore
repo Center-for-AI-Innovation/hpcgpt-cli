@@ -22,6 +22,8 @@ node_modules
 [Mm]odels/
 [Tt]mp/
 __pycache__/
+.venv/
+venv/
 
 
 # LLMFlux build directories
