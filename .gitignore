@@ -29,6 +29,7 @@ venv/
 # LLMFlux build directories
 .cache/
 .vllm/
+.llmflux/
 
 
 # npm and yarn debug logs
