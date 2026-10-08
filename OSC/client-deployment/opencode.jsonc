@@ -88,7 +88,7 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "OSC Hosted",
       "options": {
-        "baseURL": "https://${OSC_LLM_PROJECT}.ai-alpha.osc.edu/api",
+        "baseURL": "https://${OSC_LLM_PROJECT}.ai-beta.osc.edu/api",
         "apiKey": "{env:OSC_HOSTED_API_KEY}"
       },
       "models": {
@@ -180,7 +180,7 @@
         "x-osc-group": "{env:OSC_LLM_PROJECT}",
       },
       "enabled": true
-    }
+    },
     "splunk-mcp-server": {
       "type": "local",
       "command": [
@@ -193,7 +193,7 @@
       "environment": {
         "SPLUNK_TOKEN": "{env:SPLUNK_TOKEN}"
       }
-    },
+    }
   },
   "command": {
   },
