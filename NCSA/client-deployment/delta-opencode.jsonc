@@ -125,15 +125,15 @@
               "output": 0.43664
             }
           },
-          "glm-5.2": {
-            "name": "glm-5.2",
+          "glm-5.3-flash": {
+            "name": "glm-5.3-flash",
             "limit": {
-              "context": 500410,
-              "output": 101376
+              "context": 1048576,
+              "output": 131072
             },
             "cost": {
-              "input": 1.307774,
-              "output": 4.264672
+              "input": 0.1402,
+              "output": 0.4542
             }
           },
           "muse-glimmer-30b": {
@@ -156,6 +156,17 @@
             "cost": {
               "input": 0.160667,
               "output": 0.788778
+            }
+          },
+          "ornith-1.0-35b": {
+            "name": "ornith-1.0-35b",
+            "limit": {
+              "context": 262138,
+              "output": 256000
+            },
+            "cost": {
+              "input": 0.05,
+              "output": 0.1
             }
           },
           "qwen3-coder-next": {
@@ -189,6 +200,17 @@
             "cost": {
               "input": 0.192306,
               "output": 1.162368
+            }
+          },
+          "qwen3.8-flash": {
+            "name": "qwen3.8-flash",
+            "limit": {
+              "context": 262138,
+              "output": 131072
+            },
+            "cost": {
+              "input": 0.142798,
+              "output": 0.452902
             }
           }
         }

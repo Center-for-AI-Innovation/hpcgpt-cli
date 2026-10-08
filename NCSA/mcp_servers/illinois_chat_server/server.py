@@ -113,7 +113,7 @@ class ChatMCP(FastMCP):
                 return "No relevant documentation context was found."
             if isinstance(contexts, str):
                 return contexts
-            return json.dumps(contexts, ensure_ascii=True)
+            return json.dumps(contexts[:10], ensure_ascii=True)
         if "message" in data:
             return data["message"]
         if (
