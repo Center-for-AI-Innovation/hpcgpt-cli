@@ -181,6 +181,19 @@
       },
       "enabled": true
     }
+    "splunk-mcp-server": {
+      "type": "local",
+      "command": [
+        "{env:HPCGPT_ROOT}/mcp_servers/splunk_server/.venv/bin/python",
+        "{env:HPCGPT_ROOT}/mcp_servers/splunk_server/server.py",
+        "-c",
+        "{env:HPCGPT_ROOT}/mcp_servers/splunk_server/config.json"
+      ],
+      "enabled": true,
+      "environment": {
+        "SPLUNK_TOKEN": "{env:SPLUNK_TOKEN}"
+      }
+    },
   },
   "command": {
   },
