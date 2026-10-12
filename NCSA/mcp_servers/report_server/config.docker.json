@@ -1,0 +1,20 @@
+{
+    "host": "0.0.0.0",
+    "port": 8003,
+    "log_file": "/tmp/Latest.log",
+    "log_level": "INFO",
+    "mode": "email",
+    "email": {
+        "sender_address": "noreply@example.edu",
+        "recipient_address": "help@example.edu",
+        "subject": "Delta : Support Report"
+    },
+    "jira": {
+        "url": "https://jira.example.edu",
+        "authentication_method": "personal_access_token",
+        "personal_access_token": "placeholder",
+        "project": "SUP",
+        "issue_type": "Task",
+        "default_fields": {}
+    }
+}

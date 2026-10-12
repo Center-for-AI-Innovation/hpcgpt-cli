@@ -1,0 +1,12 @@
+[
+  {
+    "custom_id": "SUP-00001",
+    "cluster": "login",
+    "content": "Q: How do I log in to Delta?\nA: Use SSH to delta.ncsa.illinois.edu with your NCSA credentials."
+  },
+  {
+    "custom_id": "SUP-00002",
+    "cluster": "storage",
+    "content": "Q: Where is my home directory?\nA: Home directories are under /u/<username> on Delta."
+  }
+]

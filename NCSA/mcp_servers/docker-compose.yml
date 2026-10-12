@@ -1,0 +1,82 @@
+# NCSA MCP servers — Docker Compose
+# Ports match Delta OpenCode remotes: 8001–8004
+#
+# Setup:
+#   cp .env.example .env
+#   cp slurm_server/example.config.json slurm_server/config.json
+#   cp illinois_chat_server/example.config.json illinois_chat_server/config.json
+#   # edit illinois/report configs with real secrets; set host 0.0.0.0
+#   docker compose up -d --build
+
+name: ncsa-mcp
+
+services:
+  slurm-mcp:
+    build: ./slurm_server
+    image: ${IMAGE_REGISTRY:-ghcr.io}/${IMAGE_OWNER:-ncsa}/ncsa_slurm_mcp:${IMAGE_TAG:-v0.1.0}
+    container_name: ncsa-slurm-mcp
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment:
+      HOST_IP: "0.0.0.0"
+      PORT: "8001"
+      CONFIG_FILE: /app/config.json
+      LD_LIBRARY_PATH: /usr/lib64/slurm:/usr/lib64
+    volumes:
+      - ${SLURM_CONFIG:-./slurm_server/config.docker.json}:/app/config.json:ro
+      - ${SINFO_PATH:-/usr/bin/sinfo}:/usr/bin/sinfo:ro
+      - ${SQUEUE_PATH:-/usr/bin/squeue}:/usr/bin/squeue:ro
+      - ${SCONTROL_PATH:-/usr/bin/scontrol}:/usr/bin/scontrol:ro
+      - ${ACCOUNTS_PATH:-/sw/user/scripts/accounts}:/usr/bin/accounts:ro
+      - ${SLURM_CONF_DIR:-/etc/slurm}:/etc/slurm:ro
+      - ${MUNGE_RUN_DIR:-/var/run/munge}:/var/run/munge:ro
+      - ${SLURM_LIB_DIR:-/usr/lib64/slurm}:/usr/lib64/slurm:ro
+      - ${LIBSLURM_SO:-/usr/lib64/libslurm.so.44}:/usr/lib64/libslurm.so.44:ro
+
+  illinois-chat-mcp:
+    build: ./illinois_chat_server
+    image: ${IMAGE_REGISTRY:-ghcr.io}/${IMAGE_OWNER:-ncsa}/ncsa_illinois_chat_mcp:${IMAGE_TAG:-v0.1.0}
+    container_name: ncsa-illinois-chat-mcp
+    restart: unless-stopped
+    ports:
+      - "8002:8002"
+    environment:
+      HOST_IP: "0.0.0.0"
+      PORT: "8002"
+      CONFIG_FILE: /app/config.json
+      ILLINOIS_CHAT_URL: ${ILLINOIS_CHAT_URL:-}
+      ILLINOIS_CHAT_API_KEY: ${ILLINOIS_CHAT_API_KEY:-}
+      ILLINOIS_CHAT_MODEL: ${ILLINOIS_CHAT_MODEL:-}
+    volumes:
+      - ${ILLINOIS_CHAT_CONFIG:-./illinois_chat_server/config.docker.json}:/app/config.json:ro
+
+  report-mcp:
+    build: ./report_server
+    image: ${IMAGE_REGISTRY:-ghcr.io}/${IMAGE_OWNER:-ncsa}/ncsa_report_mcp:${IMAGE_TAG:-v0.1.0}
+    container_name: ncsa-report-mcp
+    restart: unless-stopped
+    ports:
+      - "8003:8003"
+    environment:
+      HOST_IP: "0.0.0.0"
+      PORT: "8003"
+      CONFIG_FILE: /app/config.json
+    volumes:
+      - ${REPORT_CONFIG:-./report_server/config.docker.json}:/app/config.json:ro
+
+  ticket-mcp:
+    build: ./ticket_server
+    image: ${IMAGE_REGISTRY:-ghcr.io}/${IMAGE_OWNER:-ncsa}/ncsa_ticket_mcp:${IMAGE_TAG:-v0.1.0}
+    container_name: ncsa-ticket-mcp
+    restart: unless-stopped
+    ports:
+      - "8004:8004"
+    environment:
+      HOST_IP: "0.0.0.0"
+      PORT: "8004"
+      CONFIG_FILE: /app/config.json
+      DATA_FILE: /data/clustered.json
+    volumes:
+      - ${TICKET_CONFIG:-./ticket_server/config.docker.json}:/app/config.json:ro
+      - ${TICKET_DATA_DIR:-./ticket_server/fixtures}:/data:ro
