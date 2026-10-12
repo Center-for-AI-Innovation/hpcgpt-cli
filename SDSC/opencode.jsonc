@@ -1,0 +1,98 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agent": {
+    "build": {
+      "disable": true
+    },
+    "plan": {
+      "disable": true
+    },
+    "hpcgpt": {
+      "disable": false
+    },
+  },
+  "autoupdate": false,
+  "default_agent": "hpcgpt",
+  "enabled_providers": ["triton-ai"],
+  "experimental": {},
+  "model": "triton-ai/api-gemma-4-31b",
+  "provider": {
+    "nrp": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "National Research Platform (NRP)",
+      "options": {
+        "baseURL": "https://ellm.nrp-nautilus.io/v1",
+        "apiKey": "{env:NRP_LLM_API_KEY}"
+      },
+      "models": {
+        "deepseek-v4-flash": {
+          "name": "deepseek-v4-flash-vision-exp"
+        },
+        "gemma": {
+          "name": "gemma-4-31b-it-qat-w4a16-ct"
+        },
+        "gemma-small": {
+          "name": "gemma-4-12B-it-qat-w4a16-ct"
+        },
+        "glm-5": {
+          "name": "glm-5.3-nvfp4"
+        },
+        "gpt-oss": {
+          "name": "gpt-oss-120b"
+        },
+        "kimi": {
+          "name": "kimi-k2.7-code"
+        },
+        "minimax-m2": {
+          "name": "minimax-m2.7"
+        },
+        "qwen3": {
+          "name": "qwen3.8-flash-next-fp8"
+        },
+        "qwen3-small": {
+          "name": "qwen3.8-27b"
+        },
+      },
+    },
+    "triton-ai": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Triton AI",
+      "options": {
+        "baseURL": "https://tritonai-api.ucsd.edu",
+        "apiKey": "{env:TRITON_AI_API_KEY}"
+      },
+      "models": {
+        "api-cohere-transcribe": {
+          "name": "cohere-transcribe"
+        },
+        "api-gemma-4-31b": {
+          "name": "gemma-4-31b"
+        },
+        "api-glm-5.3": {
+          "name": "glm-5.3"
+        },
+        "api-glm-5.3-flash": {
+          "name": "glm-5.3-flash"
+        },
+        "api-lightonocr-1b": {
+          "name": "lightonocr-1b"
+        },
+        "api-muse-glimmer-30b": {
+          "name": "muse-glimmer-30b"
+        },
+        "api-openai-privacy-filter": {
+          "name": "openai-privacy-filter"
+        },
+      },
+    },
+  },
+  "share": "disabled",
+  "snapshot": true,
+  "mcp": {
+    "chat": {
+        "type": "remote", 
+        "url": "http://127.0.0.1:8001/mcp",
+        "enabled": true
+    },
+  },
+}
