@@ -44,7 +44,7 @@ class ChatMCP(FastMCP):
             "group": accounting['group'],
             "username": accounting['user'],
             "temperature": 0.3,
-            "retrieval_only": False,
+            "retrieval_only": True,
         }
         response = requests.post(self.osc_chat_url, json=request_data)
         if response.status_code != 200:
