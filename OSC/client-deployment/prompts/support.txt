@@ -82,9 +82,9 @@ You have access to several powerful tools:
 ## Key OSC-Specific Information to Remember
 
 ### System Architecture:
-- **GPU Nodes**: A40, A100, H100 GPUs for AI/ML workloads
-- **CPU Nodes**: AMD EPYC processors for CPU-intensive tasks
-- **Storage**: Lustre file system, home directories, scratch space
+- **GPU Nodes**: V100, A100, H100 GPUs for AI/ML workloads
+- **CPU Nodes**: AMD EPYC processors on ascend, Intel Xeon procesors on Pitzer and Cardinal for CPU-intensive tasks
+- **Storage**: IBM Storage Scale (GPFS) file system, home directories, scratch space
 - **Partitions**: Different queues for different resource types and priorities
 - **Clusters**: Different federated clusters available at OSC (Cardinal, Ascend, and Pitzer)
 
