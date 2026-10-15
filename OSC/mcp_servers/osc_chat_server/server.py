@@ -54,7 +54,7 @@ class ChatMCP(FastMCP):
                 f"{response.status_code} {response.text}"
             )
         data = response.json()
-        logging.info("OSC Chat API Response: %s", data)
+        logging.debug("OSC Chat API Response: %s", data)
         if "message" in data:
             return data["message"]
         if (
@@ -66,6 +66,11 @@ class ChatMCP(FastMCP):
             return data["choices"][0]["message"]["content"]
         if "response" in data:
             return data["response"]
+        if "contexts" in data:
+            return "\n\n---\n".join(
+                    f'{d["readable_filename"]}\n{d["text"]}'
+                    for d in data['contexts']
+            )
         raise RuntimeError(f"Unexpected response format: {data}")
 
     async def query_osc_documentation(self, query: str) -> str:
