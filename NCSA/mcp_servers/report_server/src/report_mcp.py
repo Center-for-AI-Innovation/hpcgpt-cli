@@ -74,14 +74,14 @@ class ReportMCP(FastMCP):
         else:
             raise ValueError(f"Unsupported report mode: {self.config.mode}")
 
-    def _send_jira_support_report(self, parameters: SupportReportToolParameters, user_info: dict[str, Any]) -> str:
+    def _send_jira_support_report(self, parameters: SupportReportToolParameters, user_info: dict[str, Any] | None) -> str:
         """
         Send a support report to Jira.
         """
         # Find the user to report the issue to
         try:
             # Try and validate the user's identity in Jira.
-            if user_info is not None:
+            if user_info and user_info.get("email"):
                 reporter = self.jira.find_user(email=user_info["email"]).get("name")
             else:
                 reporter = self.jira.find_user(username=parameters.user).get("name")
@@ -105,10 +105,15 @@ class ReportMCP(FastMCP):
         )
 
         # Add comment containing addtional user info for staff.
-        if user_info is not None:
-            comment = f"User: {user_info['username']}\nHostname: {parameters.hostname}\nCurrent Working Directory: {parameters.current_working_directory}\nGroups: {user_info['groups']}"
-        else:
-            comment = f"User: {parameters.user}\nHostname: {parameters.hostname}\nCurrent Working Directory: {parameters.current_working_directory}"
+        username = (user_info or {}).get("username") or parameters.user
+        groups = (user_info or {}).get("groups") or []
+        comment = (
+            f"User: {username}\n"
+            f"Hostname: {parameters.hostname}\n"
+            f"Current Working Directory: {parameters.current_working_directory}"
+        )
+        if groups:
+            comment += f"\nGroups: {groups}"
         self.jira.add_comment(issue.key, comment)
 
         issue_url = f"{self.jira.server_url}/browse/{issue.key}"
@@ -141,26 +146,42 @@ class ReportMCP(FastMCP):
             log.error(f"Error getting user info for user {username}: {e}")
             return None
 
-        user_dict = {}
+        # userinfo prints "All Groups:" on one line and the group list on the next.
+        user_dict: dict[str, Any] = {}
+        groups: list[str] = []
+        collecting_groups = False
         for raw_line in raw_text.stdout.splitlines():
             line = raw_line.strip()
-            if not line or ":" not in line:
+            if not line:
+                collecting_groups = False
                 continue
-            label, _, value = line.partition(":")
-            label = label.strip()
-            value = value.strip()
-            key = label.lower().replace(" ", "_")
 
-            if key == "ispi":
-                user_dict[key] = value.upper() == "TRUE"
-            elif key == "groups":
-                user_dict[key] = value.split() if value else []
-            else:
-                user_dict[key] = value
+            if ":" in line:
+                label, _, value = line.partition(":")
+                label = label.strip()
+                value = value.strip()
+                key = label.lower().replace(" ", "_")
 
+                if key in ("groups", "all_groups"):
+                    collecting_groups = True
+                    if value:
+                        groups.extend(value.split())
+                    continue
 
-        if user_dict.get("error"):
-            log.warning(f"Could not retrieve user info for user \"{username}\". Error: {user_dict.get('error')}")
+                collecting_groups = False
+                if key == "ispi":
+                    user_dict[key] = value.upper() == "TRUE"
+                else:
+                    user_dict[key] = value
+            elif collecting_groups:
+                groups.extend(line.split())
+
+        if groups:
+            user_dict["groups"] = groups
+
+        if raw_text.returncode != 0 or user_dict.get("error") or not user_dict.get("username"):
+            error = user_dict.get("error") or raw_text.stdout.strip() or raw_text.stderr.strip() or f"exit code {raw_text.returncode}"
+            log.warning(f"Could not retrieve user info for user \"{username}\". Error: {error}")
             return None
 
         log.debug(f"Userinfo for user \"{username}\": {user_dict}")
