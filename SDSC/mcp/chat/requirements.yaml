@@ -1,0 +1,9 @@
+name: fastmcp
+
+channels:
+  - conda-forge
+
+dependencies:
+  - jupyterlab
+  - fastmcp
+  - rich-argparse
